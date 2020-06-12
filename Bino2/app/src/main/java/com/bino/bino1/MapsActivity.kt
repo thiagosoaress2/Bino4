@@ -68,6 +68,28 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
         requestToOpenGpsLikeWaze()  //liga o GPS do user
 
+        firstMeths()
+
+    }
+
+    fun firstMeths(){  //métodos retirados do onCreate pra acelerar o processo de abertura da activity
+
+        val btnLogout: Button = findViewById(R.id.btnLogout)
+        val btnLogin: Button = findViewById(R.id.btnLogin)
+
+        btnLogout.setOnClickListener {  //este botao nao vai ficar. Só usaremos nos testes para configurar o login
+            auth = FirebaseAuth.getInstance()
+            auth.signOut()
+            finish()
+        }
+
+        btnLogin.setOnClickListener {
+
+            auth = FirebaseAuth.getInstance()
+            auth.signOut()
+            finish()
+        }
+
     }
 
     /**

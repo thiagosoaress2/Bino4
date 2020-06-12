@@ -61,8 +61,17 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         auth = FirebaseAuth.getInstance()
+        val currentUser = auth.currentUser
 
         metodosIniciais()
+
+        if (currentUser == null){
+            val btnLoginDepois : Button = findViewById(R.id.btnLoginDepois)
+            Log.d("teste", "chegou no btn")
+            btnLoginDepois.performClick()
+        } else {
+            updateUI(currentUser, "unknown")
+        }
 
 
 
@@ -79,6 +88,7 @@ class MainActivity : AppCompatActivity() {
 
         //fazer login depos
         val btnLoginDepois : Button = findViewById(R.id.btnLoginDepois)
+        Log.d("teste", "chegou no btn")
         btnLoginDepois.setOnClickListener {
             if (isNetworkAvailable(this)){
                 ChamaDialog()
