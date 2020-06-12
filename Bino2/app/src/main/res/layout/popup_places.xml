@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/constraintLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="#ffffff"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+
+        <TextView
+            android:id="@+id/placesPopup_titulo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="TextView"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/placesPopup_texto"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="TextView"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/placesPopup_titulo" />
+
+        <ImageView
+            android:id="@+id/placesPopup_img"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            app:layout_constraintEnd_toStartOf="@+id/placesPopup_texto"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/placesPopup_texto"
+            app:srcCompat="@drawable/com_facebook_favicon_blue" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/constraintLayout3"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/placesPopup_img">
+
+            <ImageView
+                android:id="@+id/placesPopup_star1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:srcCompat="@drawable/ic_star_border" />
+
+            <ImageView
+                android:id="@+id/placesPopup_star2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                app:layout_constraintBottom_toBottomOf="@+id/placesPopup_star1"
+                app:layout_constraintStart_toEndOf="@+id/placesPopup_star1"
+                app:layout_constraintTop_toTopOf="@+id/placesPopup_star1"
+                app:srcCompat="@drawable/ic_star_border" />
+
+            <ImageView
+                android:id="@+id/placesPopup_star3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                app:layout_constraintBottom_toBottomOf="@+id/placesPopup_star2"
+                app:layout_constraintStart_toEndOf="@+id/placesPopup_star2"
+                app:layout_constraintTop_toTopOf="@+id/placesPopup_star2"
+                app:srcCompat="@drawable/ic_star_border" />
+
+            <ImageView
+                android:id="@+id/placesPopup_star4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                app:layout_constraintBottom_toBottomOf="@+id/placesPopup_star3"
+                app:layout_constraintStart_toEndOf="@+id/placesPopup_star3"
+                app:layout_constraintTop_toTopOf="@+id/placesPopup_star3"
+                app:srcCompat="@drawable/ic_star_border" />
+
+            <ImageView
+                android:id="@+id/placesPopup_star5"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                app:layout_constraintBottom_toBottomOf="@+id/placesPopup_star4"
+                app:layout_constraintStart_toEndOf="@+id/placesPopup_star4"
+                app:layout_constraintTop_toTopOf="@+id/placesPopup_star4"
+                app:srcCompat="@drawable/ic_star_border" />
+
+            <TextView
+                android:id="@+id/placesPopup_custo"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="16dp"
+                android:text="TextView"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="@+id/placesPopup_star5"
+                app:layout_constraintStart_toStartOf="@+id/placesPopup_star1"
+                app:layout_constraintTop_toBottomOf="@+id/placesPopup_star1" />
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <Button
+            android:id="@+id/placesPopup_btnAvaliar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:layout_marginEnd="32dp"
+            android:layout_marginBottom="16dp"
+            android:text="Avaliar"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/constraintLayout3" />
+
+        <Button
+            android:id="@+id/placesPopup_btnFechar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="32dp"
+            android:text="Fechar"
+            app:layout_constraintBottom_toBottomOf="@+id/placesPopup_btnAvaliar"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/placesPopup_btnAvaliar" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

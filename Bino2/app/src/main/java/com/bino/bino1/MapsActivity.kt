@@ -9,6 +9,7 @@ import android.location.Location
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.transition.Slide
 import android.transition.TransitionManager
 import android.util.Log
@@ -54,6 +55,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
     val raioBusca = 1.0 //  0.1 = 1km no mapa              obs: Mudamos para 10 km
 
     val arrayTruckersNerby: MutableList<Marker> = ArrayList()
+
+    val arrayPlacesNerby: MutableList<Marker> = ArrayList()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -153,6 +156,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                     if (!userMail.equals("semLogin")){ //Se for semLogin então não coloca ele online pois os outros não poderão ve-lo também
                         updateUserStatus("online", "aindanao")
                         findUsersNerby(location.latitude, location.longitude)
+                        findPlacesNerby(location.latitude, location.longitude)
+                        findNewPlacesAsUserMoves(location.latitude, location.longitude)
 
                     }
 
@@ -298,8 +303,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
         //startAtval = (dif+startAtval) //ajuste
 
+        arrayTruckersNerby.clear()
         FirebaseDatabase.getInstance().reference.child("userOnline").orderByChild("latlong").startAt(startAtval)
-            .endAt(endAtval).limitToFirst(15)
+            .endAt(endAtval)
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(dataSnapshot: DataSnapshot) {
 
@@ -417,6 +423,171 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
     }
 
+
+
+
+
+
+
+
+
+
+
+
+    //procura usuarios proximos online
+    fun findPlacesNerby(lat: Double, long: Double) {
+
+        var latlong = lat + long
+
+        var startAtval = latlong-(0.01f*raioBusca)
+        val endAtval = latlong+(0.01f*raioBusca)
+
+        arrayPlacesNerby.clear()
+        FirebaseDatabase.getInstance().reference.child("places").orderByChild("latlong").startAt(startAtval)
+            .endAt(endAtval)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+
+                    if (dataSnapshot.exists()) {
+                        for (querySnapshot in dataSnapshot.children) {
+
+                            if (!querySnapshot.key.toString().equals(userBd)){
+                                var values: String
+                                values = querySnapshot.key.toString()
+                                val latFriend = querySnapshot.child("lat").value.toString()
+                                val longFriend = querySnapshot.child("long").value.toString()
+                                val custo = querySnapshot.child("custo").value.toString()
+                                val nota = querySnapshot.child("nota").value.toString()
+                                val tipo = querySnapshot.child("tipo").value.toString()
+                                val nome = querySnapshot.child("nome").value.toString()
+
+                                //coloca o petFriend no mapa
+                                placePlacesInMap(values, latFriend.toDouble(), longFriend.toDouble(), custo, nota, tipo, nome)
+
+                            }
+
+                        }
+                    } else {
+                        showToast("Ninguém próximo de você.")
+                    }
+
+                }
+
+                override fun onCancelled(databaseError: DatabaseError) {
+                    // Getting Post failed, log a message
+
+                    // ...
+                }
+            })   //addValueEventListener
+
+    }
+
+    fun placePlacesInMap(bd: String, lat: Double, long: Double, custo: String, nota: String, tipo: String, nome: String){
+
+        val latLng = LatLng(lat, long)
+
+        if (tipo.equals("restaurante")){
+            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo+"!?!"+nome).icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurante)))
+            arrayTruckersNerby.add(mark1)
+            mark1.tag=0
+            mMap.setOnMarkerClickListener(this)
+        }
+
+
+        /*
+        var img2 = "nao"
+        if (img.equals("nao")){
+            img2 = "https://firebasestorage.googleapis.com/v0/b/farejadorapp.appspot.com/o/imgs_sistema%2Fimgusernoimg.png?alt=media&token=8a119c04-3295-4c5a-8071-dde1fe7849ea"
+        } else {
+            img2 = img
+        }
+
+        Glide.with(this)
+            .asBitmap()
+            .load(img2)
+            .apply(RequestOptions().override(withPercent, heigthPercent))
+            .apply(RequestOptions.circleCropTransform())
+            .into(object : CustomTarget<Bitmap>(){
+                override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
+
+                    val bit = BitmapFactory.decodeResource(
+                        this@MapsActivity.getResources(),
+                        R.drawable.placeholder
+                    )
+
+                    bitmapFinal = createUserBitmapFinalJustRound(resource, bit)  //here we will insert the bitmap we got with the link in a placehold with white border.
+
+                    val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("petFriend!?!"+BdPetFriend+"!?!"+img+"!?!"+latLng).icon(
+                        BitmapDescriptorFactory.fromBitmap(bitmapFinal)))
+                    arrayPetFriendMarker.add(mark1)
+
+                    mark1.tag=0
+
+                    mMap.setOnMarkerClickListener (this@MapsActivity)
+
+                }
+                override fun onLoadCleared(placeholder: Drawable?) {
+                    // this is called when imageView is cleared on lifecycle call or for
+                    // some other reason.
+                    // if you are referencing the bitmap somewhere else too other than this imageView
+                    // clear it here as you can no longer have the bitmap
+                }
+            })
+
+
+         */
+
+        //aqui esconde ou mostra os usuarios
+        //OBS: SE DER ERRO QUANDO TIVER MAIS MARKERS OLHAR NO METODO GET MARK. PODE SER QUE TENHA QUE MUDAR O CODIGO LA DENTRO, POIS ESTA .get(0) e nao get(position)
+        /*
+        val btnShowHidePetFriends = findViewById<Button>(R.id.btnShowHidePetFriends)
+        btnShowHidePetFriends.visibility = View.VISIBLE
+        btnShowHidePetFriends.setOnClickListener {
+            var cont=0
+            while (cont<arrayPetFriendMarker.size){
+                if (arrayPetFriendMarker.get(cont).isVisible){
+                    arrayPetFriendMarker.get(cont).isVisible=false
+                    btnShowHidePetFriends.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.petfriendsnot, 0, 0)
+                    makeToast("Usuários removidos do mapa")
+                } else {
+                    arrayPetFriendMarker.get(cont).isVisible=true
+                    btnShowHidePetFriends.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.petfriends, 0, 0)
+                    makeToast("Usuários de volta ao mapa")
+                }
+                cont++
+            }
+
+        }
+         */
+
+    }
+
+    //a cada 3,5 min (5 km a 80km/h) refaz as queryes para exibir os novos lugares em volta
+    fun findNewPlacesAsUserMoves(lat: Double, long: Double){
+
+        //primeiro parametro é o tempo do timer em millis e o segundo é
+        //o intervalo entre um timer e outro. Se for 0, começa direto o proximo.
+        val timer = object : CountDownTimer(210000, 1000) {
+            override fun onTick(millisUntilFinished: Long) {}
+
+            override fun onFinish() {
+                findPlacesNerby(lat, long)
+                findUsersNerby(lat, long)
+            }
+
+        }
+        timer.start()
+
+    }
+
+
+
+
+
+
+
+
+    //todos os cliques nos markers do mapa
     override fun onMarkerClick(p0: Marker?): Boolean {
         // Retrieve the data from the marker.
 
@@ -424,7 +595,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
         if (bd != null){
 
-           if (bd.contains("trucker!?!")){
+            if (bd.contains("trucker!?!")){
 
                 val tokens = StringTokenizer(bd.toString(), "!?!")
                 val descart = tokens.nextToken() // this will contain "trucker"
@@ -434,6 +605,20 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                 //abrir popup
                 openPopUp("Chamar este caminhoneiro?", "Você deseja abrir o whatsapp?", true, "Sim, abrir", "Não", "trucker", bdDoUser)
 
+            } else if (bd.contains("place!?!")){
+
+                val tokens = StringTokenizer(bd.toString(), "!?!")
+                val discart = tokens.nextToken() // this will contain "place"
+                val bdDoPlace = tokens.nextToken() // this will contain "bd"
+                val discart2 = tokens.nextToken() // this will contain "latlong"
+                val custo = tokens.nextToken() // this will contain "custo"
+                val nota = tokens.nextToken() // this will contain "nota"
+                val tipo = tokens.nextToken() // this will contain "tipo"
+                val nome = tokens.nextToken() // this will contain "nome"
+
+                openPopUpPlaces(nome, "texto aqui", true, "Avaliar", "Fechar", "places", bdDoPlace, custo, nota.toDouble(), tipo)
+                //("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo)
+
             }
 
         }
@@ -441,12 +626,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         //return false
         return true
     }
-
-
-
-
-
-
 
 
 
@@ -558,6 +737,205 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         if (call.equals("trucker")) {
             //abrir Whatsapp
             Toast.makeText(this, "Funcionou", Toast.LENGTH_SHORT).show()
+        }
+
+    }
+
+    fun openPopUpPlaces (titulo: String, texto:String, exibeBtnOpcoes:Boolean, btnSim: String, btnNao: String, call: String, bd: String, custo: String, nota: Double, tipo: String) {
+        //exibeBtnOpcoes - se for não, vai exibir apenas o botão com OK, sem opção. Senão, exibe dois botões e pega os textos deles de btnSim e btnNao
+
+        //EXIBIR POPUP
+        // Initialize a new layout inflater instance
+        val inflater: LayoutInflater = getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+
+        // Inflate a custom view using layout inflater
+        val view = inflater.inflate(R.layout.popup_places,null)
+
+        // Initialize a new instance of popup window
+        val popupWindow = PopupWindow(
+            view, // Custom view to show in popup window
+            LinearLayout.LayoutParams.MATCH_PARENT, // Width of popup window
+            LinearLayout.LayoutParams.WRAP_CONTENT // Window height
+        )
+
+
+
+        // Set an elevation for the popup window
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            popupWindow.elevation = 10.0F
+        }
+
+
+        // If API level 23 or higher then execute the code
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+            // Create a new slide animation for popup window enter transition
+            val slideIn = Slide()
+            slideIn.slideEdge = Gravity.TOP
+            popupWindow.enterTransition = slideIn
+
+            // Slide animation for popup window exit transition
+            val slideOut = Slide()
+            slideOut.slideEdge = Gravity.RIGHT
+            popupWindow.exitTransition = slideOut
+
+        }
+
+
+        // Get the widgets reference from custom view
+        val buttonPopupN = view.findViewById<Button>(R.id.placesPopup_btnFechar)
+        val buttonPopupS = view.findViewById<Button>(R.id.placesPopup_btnAvaliar)
+        //val buttonPopupOk = view.findViewById<Button>(R.id.popupBtnOk)
+        val txtTitulo = view.findViewById<TextView>(R.id.placesPopup_titulo)
+        val txtTexto = view.findViewById<TextView>(R.id.placesPopup_texto)
+        val txtCusto = view.findViewById<TextView>(R.id.placesPopup_custo)
+        val imageView = view.findViewById<ImageView>(R.id.placesPopup_img)
+        val star1 = view.findViewById<ImageView>(R.id.placesPopup_star1)
+        val star2 = view.findViewById<ImageView>(R.id.placesPopup_star2)
+        val star3 = view.findViewById<ImageView>(R.id.placesPopup_star3)
+        val star4 = view.findViewById<ImageView>(R.id.placesPopup_star4)
+        val star5 = view.findViewById<ImageView>(R.id.placesPopup_star5)
+
+
+
+        if (exibeBtnOpcoes){
+            //vai exibir os botões com textos e esconder o btn ok
+            //buttonPopupOk.visibility = View.GONE
+            //exibe e ajusta os textos dos botões
+            buttonPopupN.text = btnNao
+            buttonPopupS.text = btnSim
+
+            // Set a click listener for popup's button widget
+            buttonPopupN.setOnClickListener{
+                // Dismiss the popup window
+                popupWindow.dismiss()
+            }
+
+        } else {
+
+            //vai esconder os botões com textos e exibir o btn ok
+            //buttonPopupOk.visibility = View.VISIBLE
+            //exibe e ajusta os textos dos botões
+            buttonPopupN.visibility = View.GONE
+            buttonPopupS.visibility = View.GONE
+
+
+            /*
+            buttonPopupOk.setOnClickListener{
+                // Dismiss the popup window
+                popupWindow.dismiss()
+            }
+             */
+
+        }
+
+        txtTitulo.text = titulo
+        txtTexto.text = texto
+
+        //ajusta o valor
+        if (custo.equals("1")){
+            txtCusto.setText("$")
+        } else if (custo.equals("2")){
+            txtCusto.setText("$ $")
+        } else if (custo.equals("3")){
+            txtCusto.setText("$ $ $")
+        } else if (custo.equals("4")){
+            txtCusto.setText("$ $ $ $")
+        } else {
+            txtCusto.setText("$ $ $ $ $")
+        }
+
+        //agora ajusta a nota
+        if (nota == 5.0){
+            star1.setImageResource(R.drawable.ic_star_gold)
+            star2.setImageResource(R.drawable.ic_star_gold)
+            star3.setImageResource(R.drawable.ic_star_gold)
+            star4.setImageResource(R.drawable.ic_star_gold)
+            star5.setImageResource(R.drawable.ic_star_gold)
+        } else if (nota > 4.0){
+            star1.setImageResource(R.drawable.ic_star_gold)
+            star2.setImageResource(R.drawable.ic_star_gold)
+            star3.setImageResource(R.drawable.ic_star_gold)
+            star4.setImageResource(R.drawable.ic_star_gold)
+            star5.setImageResource(R.drawable.ic_star_half)
+        } else if (nota == 4.0){
+            star1.setImageResource(R.drawable.ic_star_gold)
+            star2.setImageResource(R.drawable.ic_star_gold)
+            star3.setImageResource(R.drawable.ic_star_gold)
+            star4.setImageResource(R.drawable.ic_star_gold)
+            star5.setImageResource(R.drawable.ic_star_border)
+        } else if (nota > 3.0){
+            star1.setImageResource(R.drawable.ic_star_gold)
+            star2.setImageResource(R.drawable.ic_star_gold)
+            star3.setImageResource(R.drawable.ic_star_gold)
+            star4.setImageResource(R.drawable.ic_star_half)
+            star5.setImageResource(R.drawable.ic_star_half)
+        } else if (nota == 3.0){
+            star1.setImageResource(R.drawable.ic_star_gold)
+            star2.setImageResource(R.drawable.ic_star_gold)
+            star3.setImageResource(R.drawable.ic_star_gold)
+            star4.setImageResource(R.drawable.ic_star_border)
+            star5.setImageResource(R.drawable.ic_star_border)
+        } else if (nota > 2.0){
+            star1.setImageResource(R.drawable.ic_star_gold)
+            star2.setImageResource(R.drawable.ic_star_gold)
+            star3.setImageResource(R.drawable.ic_star_half)
+            star4.setImageResource(R.drawable.ic_star_half)
+            star5.setImageResource(R.drawable.ic_star_half)
+        } else if (nota == 2.0){
+            star1.setImageResource(R.drawable.ic_star_gold)
+            star2.setImageResource(R.drawable.ic_star_gold)
+            star3.setImageResource(R.drawable.ic_star_border)
+            star4.setImageResource(R.drawable.ic_star_border)
+            star5.setImageResource(R.drawable.ic_star_border)
+        } else if (nota > 1.0){
+            star1.setImageResource(R.drawable.ic_star_gold)
+            star2.setImageResource(R.drawable.ic_star_half)
+            star3.setImageResource(R.drawable.ic_star_half)
+            star4.setImageResource(R.drawable.ic_star_half)
+            star5.setImageResource(R.drawable.ic_star_half)
+        } else if (nota == 1.0){
+            star1.setImageResource(R.drawable.ic_star_gold)
+            star2.setImageResource(R.drawable.ic_star_border)
+            star3.setImageResource(R.drawable.ic_star_border)
+            star4.setImageResource(R.drawable.ic_star_border)
+            star5.setImageResource(R.drawable.ic_star_border)
+        } else if (nota > 0.0){
+            star1.setImageResource(R.drawable.ic_star_half)
+            star2.setImageResource(R.drawable.ic_star_half)
+            star3.setImageResource(R.drawable.ic_star_half)
+            star4.setImageResource(R.drawable.ic_star_half)
+            star5.setImageResource(R.drawable.ic_star_half)
+        } else if (nota == 0.0){
+            star1.setImageResource(R.drawable.ic_star_border)
+            star2.setImageResource(R.drawable.ic_star_border)
+            star3.setImageResource(R.drawable.ic_star_border)
+            star4.setImageResource(R.drawable.ic_star_border)
+            star5.setImageResource(R.drawable.ic_star_border)
+        }
+
+
+        // Set a dismiss listener for popup window
+        popupWindow.setOnDismissListener {
+            //Fecha a janela ao clicar fora também
+            popupWindow.dismiss()
+        }
+
+        //lay_root é o layout parent que vou colocar a popup
+        val lay_root: ConstraintLayout = findViewById(R.id.layPai)
+
+        // Finally, show the popup window on app
+        TransitionManager.beginDelayedTransition(lay_root)
+        popupWindow.showAtLocation(
+            lay_root, // Location to display popup window
+            Gravity.CENTER, // Exact position of layout to display popup
+            0, // X offset
+            0 // Y offset
+        )
+
+        //aqui colocamos os ifs com cada call de cada vez que a popup for chamada
+        if (call.equals("avaliar")) {
+            //abrir Whatsapp
+            Toast.makeText(this, "Avaliar", Toast.LENGTH_SHORT).show()
         }
 
     }
