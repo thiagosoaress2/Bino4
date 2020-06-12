@@ -4,6 +4,8 @@ import android.Manifest
 import android.content.Context
 import android.content.IntentSender
 import android.content.pm.PackageManager
+import android.graphics.*
+import android.graphics.drawable.Drawable
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
@@ -23,6 +25,10 @@ import androidx.annotation.NonNull
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
@@ -76,7 +82,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         //recupera o email do usuário
         userMail = intent.getStringExtra("email")
 
-        Log.d("teste", "o valor de usermail é "+userMail)
 
         if (!requestPermission()){
             requestThePermission()
@@ -214,12 +219,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
     //procedimentos para colocar o user online e offline
     //define status do user como online ou offline
     fun updateUserStatus(state: String, img: String){
-        
-        Log.d("teste", "chegou em update")
 
         if (this@MapsActivity::lastLocation.isInitialized) {
-
-            Log.d("teste", "lastlocation ja havi sido inicializada")
 
             if (ActivityCompat.checkSelfPermission(
                     this,
@@ -250,7 +251,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                     val long = lastLocation.longitude
                     val statusUpDateRef = databaseReference.child("userOnline")
 
-                    Log.d("teste", "lastlocation ja havi sido inicializada")
                     if (state.equals("online")) {
 
                         //coloca o user online
@@ -389,55 +389,87 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
         val latLng = LatLng(lat, long)
 
-        val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("trucker!?!"+bdTrucker+"!?!"+latLng))
-        arrayTruckersNerby.add(mark1)
+        //val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("trucker!?!"+bdTrucker+"!?!"+img+"!?!"+latLng))
+        //arrayTruckersNerby.add(mark1)
 
-        mark1.tag=0
+        //mark1.tag=0
 
-        mMap.setOnMarkerClickListener(this)
+        //mMap.setOnMarkerClickListener(this)
 
-        /*
         var img2 = "nao"
-        if (img.equals("nao")){
-            img2 = "https://firebasestorage.googleapis.com/v0/b/farejadorapp.appspot.com/o/imgs_sistema%2Fimgusernoimg.png?alt=media&token=8a119c04-3295-4c5a-8071-dde1fe7849ea"
+        var bitmapFinal : Bitmap?
+
+        //pega o tamanho da tela para ajustar a qualquer celular na mesma proporção
+        val display = windowManager.defaultDisplay
+        val size = Point()
+        display.getSize(size)
+        val width: Int = size.x
+        val height: Int = size.y
+
+        //aqui é o tamanho total da imagem do user. Alterar aqui se quiser aumentar ou diminuir
+        val withPercent  = ((12*width)/100).toInt()
+        val heigthPercent : Int = ((7*height)/100).toInt()
+
+
+
+        if (img.equals("nao")){  //se nao tem foto exibe somente o pin
+            //img2 = "https://firebasestorage.googleapis.com/v0/b/store-2fa27.appspot.com/o/avatar.jpg?alt=media&token=7cc4587a-c99f-4017-b14b-09ecf7910729"
+
+            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("trucker!?!"+bdTrucker+"!?!"+img+"!?!"+latLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.placeholdersmall)))
+            arrayTruckersNerby.add(mark1)
+
+            mark1.tag=0
+
+            mMap.setOnMarkerClickListener(this)
+
+
         } else {
+
             img2 = img
+
+            Glide.with(this)
+                .asBitmap()
+                .load(img2)
+                .apply(RequestOptions().override(withPercent, heigthPercent))
+                .apply(RequestOptions.circleCropTransform())
+                .into(object : CustomTarget<Bitmap>() {
+                    override fun onResourceReady(
+                        resource: Bitmap,
+                        transition: Transition<in Bitmap>?
+                    ) {
+
+                        val bit = BitmapFactory.decodeResource(
+                            this@MapsActivity.getResources(),
+                            R.drawable.placeholder
+                        )
+
+                        bitmapFinal = createUserBitmapFinalJustRound(
+                            resource,
+                            bit
+                        )  //here we will insert the bitmap we got with the link in a placehold with white border.
+
+                        val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("trucker!?!"+bdTrucker+"!?!"+img2+"!?!"+latLng)
+                                .icon(
+                                    BitmapDescriptorFactory.fromBitmap(bitmapFinal)
+                                )
+                        )
+                        arrayTruckersNerby.add(mark1)
+
+                        mark1.tag = 0
+
+                        mMap.setOnMarkerClickListener(this@MapsActivity)
+
+                    }
+
+                    override fun onLoadCleared(placeholder: Drawable?) {
+                        // this is called when imageView is cleared on lifecycle call or for
+                        // some other reason.
+                        // if you are referencing the bitmap somewhere else too other than this imageView
+                        // clear it here as you can no longer have the bitmap
+                    }
+                })
+
         }
-
-        Glide.with(this)
-            .asBitmap()
-            .load(img2)
-            .apply(RequestOptions().override(withPercent, heigthPercent))
-            .apply(RequestOptions.circleCropTransform())
-            .into(object : CustomTarget<Bitmap>(){
-                override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
-
-                    val bit = BitmapFactory.decodeResource(
-                        this@MapsActivity.getResources(),
-                        R.drawable.placeholder
-                    )
-
-                    bitmapFinal = createUserBitmapFinalJustRound(resource, bit)  //here we will insert the bitmap we got with the link in a placehold with white border.
-
-                    val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("petFriend!?!"+BdPetFriend+"!?!"+img+"!?!"+latLng).icon(
-                        BitmapDescriptorFactory.fromBitmap(bitmapFinal)))
-                    arrayPetFriendMarker.add(mark1)
-
-                    mark1.tag=0
-
-                    mMap.setOnMarkerClickListener (this@MapsActivity)
-
-                }
-                override fun onLoadCleared(placeholder: Drawable?) {
-                    // this is called when imageView is cleared on lifecycle call or for
-                    // some other reason.
-                    // if you are referencing the bitmap somewhere else too other than this imageView
-                    // clear it here as you can no longer have the bitmap
-                }
-            })
-
-
-         */
 
         //aqui esconde ou mostra os usuarios
         //OBS: SE DER ERRO QUANDO TIVER MAIS MARKERS OLHAR NO METODO GET MARK. PODE SER QUE TENHA QUE MUDAR O CODIGO LA DENTRO, POIS ESTA .get(0) e nao get(position)
@@ -642,7 +674,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                 val tokens = StringTokenizer(bd.toString(), "!?!")
                 val descart = tokens.nextToken() // this will contain "trucker"
                 val bdDoUser = tokens.nextToken() // this will contain "bd"
-                //val img = tokens.nextToken()
+                val img = tokens.nextToken()
 
                 //abrir popup
                 openPopUp("Chamar este caminhoneiro?", "Você deseja abrir o whatsapp?", true, "Sim, abrir", "Não", "trucker", bdDoUser)
@@ -1014,7 +1046,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                 dolar1.setImageResource(R.drawable.dollar)
             }
 
-            if (custo.equals("0")){
+            if (custo.equals("R$0,00")){
                 txtResumo.setText("Este lugar nunca foi avaliado.")
             } else {
                 txtResumo.setText("Custo médio deste lugar é "+currencyTranslation(custo.toInt()))
@@ -1165,11 +1197,22 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                     showToast("Avalie o custo. Isso ajuda seus amigos.")
                 } else {
 
-                    val novaNota = (notaInformada + nota) / avaliacoes.toInt()
-                    val novoCusto = (custoInformado.toDouble() / custo.toDouble()) / avaliacoes.toInt()
 
-                    databaseReference.child("places").child(bd).child("nota").setValue(currencyTranslation(novaNota.toInt()))
-                    databaseReference.child("places").child(bd).child("custo").setValue(currencyTranslation(novoCusto.toInt()))
+                    var str:String = custo.replace("R$", "")
+                    str = str.replace(",", "").trim()
+                    str = str.replace(".", "").trim()
+                    val valorFormatado = str.toInt()
+
+                    val novaNota = (notaInformada + nota) / avaliacoes.toInt()
+                    var novoCusto = 0
+                    if (avaliacoes.toInt()==0){
+                        novoCusto = custoInformado
+                    } else {
+                        novoCusto  = (custoInformado + valorFormatado) / avaliacoes.toInt()
+                    }
+
+                    databaseReference.child("places").child(bd).child("nota").setValue(novaNota.toInt())
+                    databaseReference.child("places").child(bd).child("custo").setValue(currencyTranslation(novoCusto))
                     databaseReference.child("places").child(bd).child("avaliacoes").setValue(avaliacoes.toInt()+1)
                     showToast("Você avaliou este lugar. Agora seus amigos poderão saber o que você achou.")
                     popupWindow.dismiss()
@@ -1672,6 +1715,41 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
     fun showToast(message: String){
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+
+    //ajusta a imagem para o marker com imagem
+    private fun createUserBitmapFinalJustRound(bitmapImgUser: Bitmap?, bitmapPlaceHolder: Bitmap?): Bitmap? {
+
+        //vamos ajustar o fundo branco ao tamanho que colocamos na imagem do user
+        val display = windowManager.defaultDisplay
+        val size = Point()
+        display.getSize(size)
+        val width: Int = size.x
+        //val height: Int = size.y
+
+        val withPercent  = ((18*width)/100).toFloat()   //um pouco maior do que a imagem do user
+        val differenceAdjust = ((8*withPercent)/100).toFloat()
+
+        //ajusta ao tamanho que queremos
+        val newPlaceHolder = scaleDown(bitmapPlaceHolder!!, withPercent, true)
+
+        //agora colocamos a imagem do bolão ao fundo e a imagem do user a frente
+        val bmOverlay = Bitmap.createBitmap(newPlaceHolder!!.getWidth(), newPlaceHolder.getHeight(), newPlaceHolder.getConfig())
+        val canvas = Canvas(bmOverlay)
+        val customMatrix = Matrix()
+        customMatrix.setTranslate(differenceAdjust, differenceAdjust)
+        canvas.drawBitmap(newPlaceHolder!!, Matrix(), null)
+        canvas.drawBitmap(bitmapImgUser!!, customMatrix, null)
+
+        return bmOverlay
+
+    }
+
+    fun scaleDown(realImage: Bitmap, maxImageSize: Float, filter: Boolean): Bitmap? {
+        val ratio = Math.min(maxImageSize / realImage.width,maxImageSize / realImage.height)
+        val width = Math.round(ratio * realImage.width)
+        val height = Math.round(ratio * realImage.height)
+        return Bitmap.createScaledBitmap(realImage, width, height, filter)
     }
 
     fun ChamaDialog() {

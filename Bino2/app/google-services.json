@@ -55,6 +55,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "259276573206-ut71q0jv6usb5eccn3nhmrp3a1hs04sk.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.bino.bino1",
+            "certificate_hash": "4b95503b55c9e66350dde95d646784128e6edf23"
+          }
+        },
+        {
           "client_id": "259276573206-mfh8967g18is7naam3gvq8mhjc672mjd.apps.googleusercontent.com",
           "client_type": 3
         }
