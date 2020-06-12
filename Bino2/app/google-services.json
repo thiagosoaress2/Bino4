@@ -30,6 +30,41 @@
       "api_key": [
         {
           "current_key": "AIzaSyAdqwkntAnz2J6kmZZRTIEQ7URCrLUexos"
+        },
+        {
+          "current_key": "AIzaSyCTRT-pv1xW3FmNUDNicvcMtG1Fn2p1AgI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "259276573206-mfh8967g18is7naam3gvq8mhjc672mjd.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:259276573206:android:57e184d8cf8cd21a004337",
+        "android_client_info": {
+          "package_name": "com.bino.bino1"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "259276573206-mfh8967g18is7naam3gvq8mhjc672mjd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAdqwkntAnz2J6kmZZRTIEQ7URCrLUexos"
+        },
+        {
+          "current_key": "AIzaSyCTRT-pv1xW3FmNUDNicvcMtG1Fn2p1AgI"
         }
       ],
       "services": {
