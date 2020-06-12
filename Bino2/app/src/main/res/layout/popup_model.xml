@@ -23,6 +23,7 @@
         app:layout_constraintWidth_percent="0.9"
         android:layout_height="wrap_content"
         android:elevation="20dp"
+        android:background="#ffffff"
         app:layout_constraintBottom_toBottomOf="@+id/constraintLayout18"
         app:layout_constraintEnd_toEndOf="parent"
 

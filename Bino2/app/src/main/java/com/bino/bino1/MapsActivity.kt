@@ -1,19 +1,24 @@
 package com.bino.bino1
 
 import android.Manifest
+import android.content.Context
+import android.content.Intent
 import android.content.IntentSender
 import android.content.pm.PackageManager
-import android.graphics.Color
 import android.location.Location
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.transition.Slide
+import android.transition.TransitionManager
 import android.util.Log
 import android.view.Gravity
+import android.view.LayoutInflater
 import android.view.View
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.Toast
+import android.view.WindowManager
+import android.widget.*
 import androidx.annotation.NonNull
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.android.gms.common.api.ApiException
@@ -24,17 +29,15 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.Circle
-import com.google.android.gms.maps.model.CircleOptions
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.*
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.*
+import java.util.*
+import kotlin.collections.ArrayList
 
-class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
+class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
     private lateinit var mMap: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -45,6 +48,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var auth: FirebaseAuth
 
     var userBd: String = "nao"
+
+    var userMail: String = "nao"
+
+    val raioBusca = 1.0 //  0.1 = 1km no mapa              obs: Mudamos para 10 km
+
+    val arrayTruckersNerby: MutableList<Marker> = ArrayList()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -58,6 +67,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         databaseReference = FirebaseDatabase.getInstance().reference
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         userBd = "teste"  //este valor vai vir de login
+
+        //recupera o email do usuário
+        userMail = intent.getStringExtra("email")
+
+        Log.d("teste", "o valor de usermail é "+userMail)
 
         if (!requestPermission()){
             requestThePermission()
@@ -135,7 +149,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
                     mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 18f))
 
-                    updateUserStatus("online", "aindanao")
+
+                    if (!userMail.equals("semLogin")){ //Se for semLogin então não coloca ele online pois os outros não poderão ve-lo também
+                        updateUserStatus("online", "aindanao")
+                        findUsersNerby(location.latitude, location.longitude)
+
+                    }
+
 
                 } else {
                     //para aparelhos antigos não estava encontrando a localização
@@ -190,7 +210,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                         //coloca o user online
                         statusUpDateRef.child(userBd).child("latlong").setValue(lat + long)
                         statusUpDateRef.child(userBd).child("state").setValue(state)
-                        statusUpDateRef.child(userBd).child("img").setValue(img)
+                        //statusUpDateRef.child(userBd).child("img").setValue(img)
                         statusUpDateRef.child(userBd).child("lat").setValue(lat)
                         statusUpDateRef.child(userBd).child("long").setValue(long)
 
@@ -250,6 +270,305 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             }
         })
     }
+
+
+
+
+
+
+
+
+
+
+    //procura usuarios proximos online
+    fun findUsersNerby(lat: Double, long: Double) {
+
+        var latlong = lat + long
+
+        var startAtval = latlong-(0.01f*raioBusca)
+        val endAtval = latlong+(0.01f*raioBusca)
+
+        //nova regra de ouro
+        //Por conta das características da latitude e longitude, nao podemos usar o mesmo valor para startAtVal (pois fica a esquerda) e endAtVal(que fica a direita).
+        //O que ocorre é que itens que ficam a esquerda acumulam a soma de valores negativos de latitude e longitude. Já os que ficam em endVal pegam o valor negativo da longitude mas as vezes pega positivo de latitude. Isso dava resulltado no final.
+        //Então agora o que vamos fazer.
+        //a val dif armazena a diferença que encontramos entre startatVal e até onde faria 6km no mapa. Se alguim dia for mudar o raio (agora é 0.6) vai ter que mexer nisso.
+        //entao basta adiconar essa diferença a startAtVal antes da busca para ele corrigir o erro. A verificar se isto também precisa ser feito para endAtAval.
+
+
+        //startAtval = (dif+startAtval) //ajuste
+
+        FirebaseDatabase.getInstance().reference.child("userOnline").orderByChild("latlong").startAt(startAtval)
+            .endAt(endAtval).limitToFirst(15)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+
+                    if (dataSnapshot.exists()) {
+                        for (querySnapshot in dataSnapshot.children) {
+
+                            if (!querySnapshot.key.toString().equals(userBd)){
+                                var values: String
+                                var img: String
+                                img = querySnapshot.child("img").value.toString()
+                                values = querySnapshot.key.toString()
+                                val latFriend = querySnapshot.child("lat").value.toString()
+                                val longFriend = querySnapshot.child("long").value.toString()
+
+                                //coloca o petFriend no mapa
+                                placeTruckersInMap(img, values, latFriend.toDouble(), longFriend.toDouble())
+
+                            }
+
+                        }
+                    } else {
+                        showToast("Ninguém próximo de você.")
+                    }
+
+                }
+
+                override fun onCancelled(databaseError: DatabaseError) {
+                    // Getting Post failed, log a message
+
+                    // ...
+                }
+            })   //addValueEventListener
+
+    }
+
+    //coloca os caminhoneiros proximos no mapa
+    //coloca os usuarios proximos online no mapa
+    //também tem o click do botão que esconde e mostra os usuários no mapa.
+    fun placeTruckersInMap(img: String, bdTrucker: String, lat: Double, long: Double){
+
+        val latLng = LatLng(lat, long)
+
+        val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("trucker!?!"+bdTrucker+"!?!"+latLng))
+        arrayTruckersNerby.add(mark1)
+
+        mark1.tag=0
+
+        mMap.setOnMarkerClickListener(this)
+
+        /*
+        var img2 = "nao"
+        if (img.equals("nao")){
+            img2 = "https://firebasestorage.googleapis.com/v0/b/farejadorapp.appspot.com/o/imgs_sistema%2Fimgusernoimg.png?alt=media&token=8a119c04-3295-4c5a-8071-dde1fe7849ea"
+        } else {
+            img2 = img
+        }
+
+        Glide.with(this)
+            .asBitmap()
+            .load(img2)
+            .apply(RequestOptions().override(withPercent, heigthPercent))
+            .apply(RequestOptions.circleCropTransform())
+            .into(object : CustomTarget<Bitmap>(){
+                override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
+
+                    val bit = BitmapFactory.decodeResource(
+                        this@MapsActivity.getResources(),
+                        R.drawable.placeholder
+                    )
+
+                    bitmapFinal = createUserBitmapFinalJustRound(resource, bit)  //here we will insert the bitmap we got with the link in a placehold with white border.
+
+                    val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("petFriend!?!"+BdPetFriend+"!?!"+img+"!?!"+latLng).icon(
+                        BitmapDescriptorFactory.fromBitmap(bitmapFinal)))
+                    arrayPetFriendMarker.add(mark1)
+
+                    mark1.tag=0
+
+                    mMap.setOnMarkerClickListener (this@MapsActivity)
+
+                }
+                override fun onLoadCleared(placeholder: Drawable?) {
+                    // this is called when imageView is cleared on lifecycle call or for
+                    // some other reason.
+                    // if you are referencing the bitmap somewhere else too other than this imageView
+                    // clear it here as you can no longer have the bitmap
+                }
+            })
+
+
+         */
+
+        //aqui esconde ou mostra os usuarios
+        //OBS: SE DER ERRO QUANDO TIVER MAIS MARKERS OLHAR NO METODO GET MARK. PODE SER QUE TENHA QUE MUDAR O CODIGO LA DENTRO, POIS ESTA .get(0) e nao get(position)
+        /*
+        val btnShowHidePetFriends = findViewById<Button>(R.id.btnShowHidePetFriends)
+        btnShowHidePetFriends.visibility = View.VISIBLE
+        btnShowHidePetFriends.setOnClickListener {
+            var cont=0
+            while (cont<arrayPetFriendMarker.size){
+                if (arrayPetFriendMarker.get(cont).isVisible){
+                    arrayPetFriendMarker.get(cont).isVisible=false
+                    btnShowHidePetFriends.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.petfriendsnot, 0, 0)
+                    makeToast("Usuários removidos do mapa")
+                } else {
+                    arrayPetFriendMarker.get(cont).isVisible=true
+                    btnShowHidePetFriends.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.petfriends, 0, 0)
+                    makeToast("Usuários de volta ao mapa")
+                }
+                cont++
+            }
+
+        }
+         */
+
+    }
+
+    override fun onMarkerClick(p0: Marker?): Boolean {
+        // Retrieve the data from the marker.
+
+        val bd = p0?.title
+
+        if (bd != null){
+
+           if (bd.contains("trucker!?!")){
+
+                val tokens = StringTokenizer(bd.toString(), "!?!")
+                val descart = tokens.nextToken() // this will contain "trucker"
+                val bdDoUser = tokens.nextToken() // this will contain "bd"
+                //val img = tokens.nextToken()
+
+                //abrir popup
+                openPopUp("Chamar este caminhoneiro?", "Você deseja abrir o whatsapp?", true, "Sim, abrir", "Não", "trucker", bdDoUser)
+
+            }
+
+        }
+
+        //return false
+        return true
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+    //Abre a popup
+    fun openPopUp (titulo: String, texto:String, exibeBtnOpcoes:Boolean, btnSim: String, btnNao: String, call: String, bd: String) {
+        //exibeBtnOpcoes - se for não, vai exibir apenas o botão com OK, sem opção. Senão, exibe dois botões e pega os textos deles de btnSim e btnNao
+
+        //EXIBIR POPUP
+        // Initialize a new layout inflater instance
+        val inflater: LayoutInflater = getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+
+        // Inflate a custom view using layout inflater
+        val view = inflater.inflate(R.layout.popup_model,null)
+
+        // Initialize a new instance of popup window
+        val popupWindow = PopupWindow(
+            view, // Custom view to show in popup window
+            LinearLayout.LayoutParams.MATCH_PARENT, // Width of popup window
+            LinearLayout.LayoutParams.WRAP_CONTENT // Window height
+        )
+
+
+
+        // Set an elevation for the popup window
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            popupWindow.elevation = 10.0F
+        }
+
+
+        // If API level 23 or higher then execute the code
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+            // Create a new slide animation for popup window enter transition
+            val slideIn = Slide()
+            slideIn.slideEdge = Gravity.TOP
+            popupWindow.enterTransition = slideIn
+
+            // Slide animation for popup window exit transition
+            val slideOut = Slide()
+            slideOut.slideEdge = Gravity.RIGHT
+            popupWindow.exitTransition = slideOut
+
+        }
+
+
+        // Get the widgets reference from custom view
+        val buttonPopupN = view.findViewById<Button>(R.id.btnReclamar)
+        val buttonPopupS = view.findViewById<Button>(R.id.BtnRecebimento)
+        val buttonPopupOk = view.findViewById<Button>(R.id.popupBtnOk)
+        val txtTitulo = view.findViewById<TextView>(R.id.popupTitulo)
+        val txtTexto = view.findViewById<TextView>(R.id.popupTexto)
+
+
+        if (exibeBtnOpcoes){
+            //vai exibir os botões com textos e esconder o btn ok
+            buttonPopupOk.visibility = View.GONE
+            //exibe e ajusta os textos dos botões
+            buttonPopupN.text = btnNao
+            buttonPopupS.text = btnSim
+
+            // Set a click listener for popup's button widget
+            buttonPopupN.setOnClickListener{
+                // Dismiss the popup window
+                popupWindow.dismiss()
+            }
+
+        } else {
+
+            //vai esconder os botões com textos e exibir o btn ok
+            buttonPopupOk.visibility = View.VISIBLE
+            //exibe e ajusta os textos dos botões
+            buttonPopupN.visibility = View.GONE
+            buttonPopupS.visibility = View.GONE
+
+
+            buttonPopupOk.setOnClickListener{
+                // Dismiss the popup window
+                popupWindow.dismiss()
+            }
+
+        }
+
+        txtTitulo.text = titulo
+        txtTexto.text = texto
+
+
+        // Set a dismiss listener for popup window
+        popupWindow.setOnDismissListener {
+            //Fecha a janela ao clicar fora também
+            popupWindow.dismiss()
+        }
+
+        //lay_root é o layout parent que vou colocar a popup
+        val lay_root: ConstraintLayout = findViewById(R.id.layPai)
+
+        // Finally, show the popup window on app
+        TransitionManager.beginDelayedTransition(lay_root)
+        popupWindow.showAtLocation(
+            lay_root, // Location to display popup window
+            Gravity.CENTER, // Exact position of layout to display popup
+            0, // X offset
+            0 // Y offset
+        )
+
+        //aqui colocamos os ifs com cada call de cada vez que a popup for chamada
+        if (call.equals("trucker")) {
+            //abrir Whatsapp
+            Toast.makeText(this, "Funcionou", Toast.LENGTH_SHORT).show()
+        }
+
+    }
+
+
+
+
+
+
+
+
 
 
 
@@ -357,8 +676,28 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
+    fun showToast(message: String){
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
 
+    fun ChamaDialog() {
+        window.setFlags(
+            WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+            WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+        ) //este serve para bloquear cliques que pdoeriam dar erros
+        val layout = findViewById<RelativeLayout>(R.id.LayoutProgressBar)
+        layout.visibility = View.VISIBLE
+        val spinner = findViewById<ProgressBar>(R.id.progressBar1)
+        spinner.visibility = View.VISIBLE
+    }
 
-
+    //este método torna invisivel um layout e encerra o dialogbar spinner.
+    fun EncerraDialog() {
+        val layout = findViewById<RelativeLayout>(R.id.LayoutProgressBar)
+        val spinner = findViewById<ProgressBar>(R.id.progressBar1)
+        layout.visibility = View.GONE
+        spinner.visibility = View.GONE
+        window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE) //libera os clicks
+    }
 
 }
