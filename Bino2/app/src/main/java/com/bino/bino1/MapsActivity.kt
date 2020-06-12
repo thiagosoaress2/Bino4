@@ -743,6 +743,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
     fun openPopUpPlaces (titulo: String, texto:String, exibeBtnOpcoes:Boolean, btnSim: String, btnNao: String, call: String, bd: String, custo: String, nota: Double, tipo: String) {
         //exibeBtnOpcoes - se for não, vai exibir apenas o botão com OK, sem opção. Senão, exibe dois botões e pega os textos deles de btnSim e btnNao
+        //obs: titulo é o também o nome do lugar
 
         //EXIBIR POPUP
         // Initialize a new layout inflater instance
@@ -832,6 +833,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         txtTexto.text = texto
 
         //ajusta o valor
+        /*
         if (custo.equals("1")){
             txtCusto.setText("$")
         } else if (custo.equals("2")){
@@ -843,6 +845,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         } else {
             txtCusto.setText("$ $ $ $ $")
         }
+         */
+
+        showCosts(custo, false)
+
 
         //agora ajusta a nota
         if (nota == 5.0){
@@ -933,10 +939,156 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         )
 
         //aqui colocamos os ifs com cada call de cada vez que a popup for chamada
-        if (call.equals("avaliar")) {
-            //abrir Whatsapp
-            Toast.makeText(this, "Avaliar", Toast.LENGTH_SHORT).show()
+        if (call.equals("places")) {
+            //é a abertura normal, exibindo o lugar, a nota e o custo
+            buttonPopupS.setOnClickListener {
+                //ao clicar em avaliar chama este mesmo método desta vez para avaliar.
+                openPopUpPlaces("Avaliar "+titulo, "Você está avaliando", true, "Avaliar", "Cancelar", "avaliar", bd, custo, nota, tipo)
+            }
+
+        } else if (call.equals("avaliar")){
+
+            buttonPopupS.setOnClickListener {
+
+            }
+            //fun openPopUpPlaces (titulo: String, texto:String, exibeBtnOpcoes:Boolean, btnSim: String, btnNao: String, call: String, bd: String, custo: String, nota: Double, tipo: String) {
         }
+
+    }
+
+    fun showCosts(custo: String, avaliar: Boolean){
+
+        val dolar1: ImageView = findViewById(R.id.placesPopup_custo_dolar1)
+        val dolar2: ImageView = findViewById(R.id.placesPopup_custo_dolar2)
+        val dolar3: ImageView = findViewById(R.id.placesPopup_custo_dolar3)
+        val dolar4: ImageView = findViewById(R.id.placesPopup_custo_dolar4)
+        val dolar5: ImageView = findViewById(R.id.placesPopup_custo_dolar5)
+        val txtResumo: TextView = findViewById(R.id.placesPopup_custo)
+
+        var str:String = custo.replace("R$", "")
+        str = str.replace(",", "").trim()
+        str = str.replace(".", "").trim()
+
+        val valorFormatado = str.toInt()
+
+        if (valorFormatado > 400){
+            dolar1.setImageResource(R.drawable.dollar)
+            dolar2.setImageResource(R.drawable.dollar)
+            dolar3.setImageResource(R.drawable.dollar)
+            dolar4.setImageResource(R.drawable.dollar)
+            dolar5.setImageResource(R.drawable.dollar)
+        } else if (valorFormatado > 200){
+            dolar1.setImageResource(R.drawable.dollar)
+            dolar2.setImageResource(R.drawable.dollar)
+            dolar3.setImageResource(R.drawable.dollar)
+            dolar4.setImageResource(R.drawable.dollar)
+        } else if (valorFormatado > 100){
+            dolar1.setImageResource(R.drawable.dollar)
+            dolar2.setImageResource(R.drawable.dollar)
+            dolar3.setImageResource(R.drawable.dollar)
+        } else if (valorFormatado > 50){
+            dolar1.setImageResource(R.drawable.dollar)
+            dolar2.setImageResource(R.drawable.dollar)
+        } else {
+            dolar1.setImageResource(R.drawable.dollar)
+        }
+
+        txtResumo.setText("Custo médio relatado é "+custo)
+
+
+    }
+
+    //corrige o valor informado pelo seekBar em dinheiro
+    fun currencyTranslation(valorOriginal: Int): String{
+
+        //passar o valor para string para poder ver o tamanho
+        var valorString = valorOriginal.toString()
+        valorString = valorString.trim()
+        valorString.replace("R$", "")
+        valorString.replace(".", "")
+        valorString.replace(",", "")
+
+        //na casa de menos de 100 mil
+        //90.000 - 5 casas
+        //entre 100 mil e 1 mi
+        //100.000
+        //entre 1 milhão pra cima
+        //1.000,000
+        if (valorString.length ==3){ //exemplo 002 222 012  fica 0,02 2,22 0,12
+
+            val sb: StringBuilder = StringBuilder(valorString)
+            //coloca o ponto no lugar certo
+            sb.insert(valorString.length - 2, ",")
+            valorString = sb.toString()
+
+        } else if (valorString.length == 4){ // 1234  fica 12,34
+
+            val sb: StringBuilder = StringBuilder(valorString)
+            //coloca o ponto no lugar certo
+            sb.insert(valorString.length - 2, ",")
+            valorString = sb.toString()
+        } else if (valorString.length==5){ //12345  fica 123,45
+
+            val sb: StringBuilder = StringBuilder(valorString)
+            //coloca o ponto no lugar certo
+            sb.insert(valorString.length - 2, ",")
+            valorString = sb.toString()
+
+        } else if (valorString.length==6){ //123456  fica 1.234,56
+
+            val sb: StringBuilder = StringBuilder(valorString)
+            //coloca o ponto no lugar certo
+            sb.insert(valorString.length - 2, ",")
+            sb.insert(1, ".")
+            valorString = sb.toString()
+
+        } else if (valorString.length==7){ //1234567  fica 12.345,67
+
+            val sb: StringBuilder = StringBuilder(valorString)
+            //coloca o ponto no lugar certo
+            sb.insert(valorString.length - 2, ",")
+            sb.insert(2, ".")
+            valorString = sb.toString()
+
+        } else if (valorString.length==8){ //12345678  fica 123.456,78
+
+            val sb: StringBuilder = StringBuilder(valorString)
+            //coloca o ponto no lugar certo
+            sb.insert(valorString.length - 2, ",")
+            sb.insert(3, ".")
+            valorString = sb.toString()
+
+        }  else if (valorString.length==9){ //123456789  fica 1.234.567,89
+
+            val sb: StringBuilder = StringBuilder(valorString)
+            //coloca o ponto no lugar certo
+            sb.insert(valorString.length - 2, ",")
+            sb.insert(4, ".")
+            sb.insert(1, ".")
+            valorString = sb.toString()
+
+        }  else if (valorString.length==10){ //1234567890  fica 12.345.678,90
+
+            val sb: StringBuilder = StringBuilder(valorString)
+            //coloca o ponto no lugar certo
+            sb.insert(valorString.length - 2, ",")
+            sb.insert(5, ".")
+            sb.insert(2, ".")
+            valorString = sb.toString()
+
+        }  else if (valorString.length==11){ //12345678901  fica 123.456.789,01
+
+            val sb: StringBuilder = StringBuilder(valorString)
+            //coloca o ponto no lugar certo
+            sb.insert(valorString.length - 2, ",")
+            sb.insert(6, ".")
+            sb.insert(3, ".")
+            valorString = sb.toString()
+
+        }
+
+        valorString = "R$"+valorString
+        return valorString
 
     }
 

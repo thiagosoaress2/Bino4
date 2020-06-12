@@ -55,14 +55,24 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/placesPopup_img">
 
+            <TextView
+                android:id="@+id/textView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Qualidade do lugar"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
             <ImageView
                 android:id="@+id/placesPopup_star1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="8dp"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/textView"
                 app:srcCompat="@drawable/ic_star_border" />
 
             <ImageView
@@ -109,13 +119,67 @@
                 android:id="@+id/placesPopup_custo"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="8dp"
                 android:layout_marginBottom="16dp"
                 android:text="TextView"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="@+id/placesPopup_star5"
                 app:layout_constraintStart_toStartOf="@+id/placesPopup_star1"
-                app:layout_constraintTop_toBottomOf="@+id/placesPopup_star1" />
+                app:layout_constraintTop_toBottomOf="@+id/placesPopup_custo_dolar3" />
+
+            <TextView
+                android:id="@+id/textView2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Custo do lugar"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/placesPopup_star2" />
+
+            <ImageView
+                android:id="@+id/placesPopup_custo_dolar1"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_marginTop="8dp"
+                app:layout_constraintStart_toStartOf="@+id/placesPopup_star1"
+                app:layout_constraintTop_toBottomOf="@+id/textView2"></ImageView>
+
+            <ImageView
+                android:id="@+id/placesPopup_custo_dolar2"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="16dp"
+                app:layout_constraintBottom_toBottomOf="@+id/placesPopup_custo_dolar1"
+                app:layout_constraintStart_toEndOf="@+id/placesPopup_custo_dolar1"
+                app:layout_constraintTop_toTopOf="@+id/placesPopup_custo_dolar1"> </ImageView>
+
+            <ImageView
+                android:id="@+id/placesPopup_custo_dolar3"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="16dp"
+                app:layout_constraintBottom_toBottomOf="@+id/placesPopup_custo_dolar2"
+                app:layout_constraintStart_toEndOf="@+id/placesPopup_custo_dolar2"
+                app:layout_constraintTop_toTopOf="@+id/placesPopup_custo_dolar2"></ImageView>
+
+            <ImageView
+                android:id="@+id/placesPopup_custo_dolar4"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="16dp"
+                app:layout_constraintBottom_toBottomOf="@+id/placesPopup_custo_dolar3"
+                app:layout_constraintStart_toEndOf="@+id/placesPopup_custo_dolar3"
+                app:layout_constraintTop_toTopOf="@+id/placesPopup_custo_dolar3"></ImageView>
+
+            <ImageView
+                android:id="@+id/placesPopup_custo_dolar5"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="16dp"
+                app:layout_constraintBottom_toBottomOf="@+id/placesPopup_custo_dolar4"
+                app:layout_constraintStart_toEndOf="@+id/placesPopup_custo_dolar4"
+                app:layout_constraintTop_toTopOf="@+id/placesPopup_custo_dolar4"></ImageView>
 
 
         </androidx.constraintlayout.widget.ConstraintLayout>
