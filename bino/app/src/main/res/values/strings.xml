@@ -1,7 +1,0 @@
-<resources>
-    <string name="app_name">Bino</string>
-    <string name="title_activity_maps">Map</string>
-
-     <string name="facebook_app_id">676867946375932</string> <string name="fb_login_protocol_scheme">fb676867946375932</string>
-
-</resources>
