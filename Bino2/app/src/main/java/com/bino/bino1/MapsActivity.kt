@@ -2,9 +2,10 @@ package com.bino.bino1
 
 import android.Manifest
 import android.content.Context
-import android.content.Intent
 import android.content.IntentSender
 import android.content.pm.PackageManager
+import android.location.Address
+import android.location.Geocoder
 import android.location.Location
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
@@ -35,6 +36,7 @@ import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
+import java.io.IOException
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -107,6 +109,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             finish()
         }
 
+        val btnAddLugar: Button = findViewById(R.id.btnAddPlace)
+        btnAddLugar.setOnClickListener {
+            addNewPlace()
+        }
+
     }
 
     /**
@@ -137,6 +144,23 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
         if (hasGpsPermission()) {
             // 1
+            if (ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                return
+            }
             mMap.isMyLocationEnabled = true
 
             // 2
@@ -197,6 +221,23 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
             Log.d("teste", "lastlocation ja havi sido inicializada")
 
+            if (ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                return
+            }
             fusedLocationClient.lastLocation.addOnSuccessListener(this) { location ->
                 // Got last known location. In some rare situations this can be null.
                 // 3
@@ -460,9 +501,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                                 val nota = querySnapshot.child("nota").value.toString()
                                 val tipo = querySnapshot.child("tipo").value.toString()
                                 val nome = querySnapshot.child("nome").value.toString()
+                                val avaliacoes = querySnapshot.child("avaliacoes").value.toString()
 
                                 //coloca o petFriend no mapa
-                                placePlacesInMap(values, latFriend.toDouble(), longFriend.toDouble(), custo, nota, tipo, nome)
+                                placePlacesInMap(values, latFriend.toDouble(), longFriend.toDouble(), custo, nota, tipo, nome, avaliacoes)
 
                             }
 
@@ -482,12 +524,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
     }
 
-    fun placePlacesInMap(bd: String, lat: Double, long: Double, custo: String, nota: String, tipo: String, nome: String){
+    fun placePlacesInMap(bd: String, lat: Double, long: Double, custo: String, nota: String, tipo: String, nome: String, avaliacoes: String){
 
         val latLng = LatLng(lat, long)
 
-        if (tipo.equals("restaurante")){
-            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo+"!?!"+nome).icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurante)))
+        if (tipo.equals("Restaurante")){
+            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo+"!?!"+nome+"!?!"+avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurante)))
             arrayTruckersNerby.add(mark1)
             mark1.tag=0
             mMap.setOnMarkerClickListener(this)
@@ -615,8 +657,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                 val nota = tokens.nextToken() // this will contain "nota"
                 val tipo = tokens.nextToken() // this will contain "tipo"
                 val nome = tokens.nextToken() // this will contain "nome"
+                val avaliacoes = tokens.nextToken() // this will contain "avaliacoes"
 
-                openPopUpPlaces(nome, "texto aqui", true, "Avaliar", "Fechar", "places", bdDoPlace, custo, nota.toDouble(), tipo)
+                openPopUpPlaces(nome, "texto aqui", true, "Avaliar", "Fechar", "places", bdDoPlace, custo, nota.toDouble(), tipo, avaliacoes)
                 //("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo)
 
             }
@@ -741,7 +784,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
     }
 
-    fun openPopUpPlaces (titulo: String, texto:String, exibeBtnOpcoes:Boolean, btnSim: String, btnNao: String, call: String, bd: String, custo: String, nota: Double, tipo: String) {
+    //aqui estão os clickes e os processos de salvar no banco de dados a avaliaçao
+    fun openPopUpPlaces (titulo: String, texto:String, exibeBtnOpcoes:Boolean, btnSim: String, btnNao: String, call: String, bd: String, custo: String, nota: Double, tipo: String, avaliacoes: String) {
         //exibeBtnOpcoes - se for não, vai exibir apenas o botão com OK, sem opção. Senão, exibe dois botões e pega os textos deles de btnSim e btnNao
         //obs: titulo é o também o nome do lugar
 
@@ -847,77 +891,139 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         }
          */
 
-        showCosts(custo, false)
+
+        //agora ajusta a nota e o custo
+        val dolar1 = view.findViewById<ImageView>(R.id.placesPopup_custo_dolar1)
+        val dolar2: ImageView = view.findViewById(R.id.placesPopup_custo_dolar2)
+        val dolar3: ImageView = view.findViewById(R.id.placesPopup_custo_dolar3)
+        val dolar4: ImageView = view.findViewById(R.id.placesPopup_custo_dolar4)
+        val dolar5: ImageView = view.findViewById(R.id.placesPopup_custo_dolar5)
+        val txtResumo: TextView = view.findViewById(R.id.placesPopup_custo)
 
 
-        //agora ajusta a nota
-        if (nota == 5.0){
-            star1.setImageResource(R.drawable.ic_star_gold)
-            star2.setImageResource(R.drawable.ic_star_gold)
-            star3.setImageResource(R.drawable.ic_star_gold)
-            star4.setImageResource(R.drawable.ic_star_gold)
-            star5.setImageResource(R.drawable.ic_star_gold)
-        } else if (nota > 4.0){
-            star1.setImageResource(R.drawable.ic_star_gold)
-            star2.setImageResource(R.drawable.ic_star_gold)
-            star3.setImageResource(R.drawable.ic_star_gold)
-            star4.setImageResource(R.drawable.ic_star_gold)
-            star5.setImageResource(R.drawable.ic_star_half)
-        } else if (nota == 4.0){
-            star1.setImageResource(R.drawable.ic_star_gold)
-            star2.setImageResource(R.drawable.ic_star_gold)
-            star3.setImageResource(R.drawable.ic_star_gold)
-            star4.setImageResource(R.drawable.ic_star_gold)
-            star5.setImageResource(R.drawable.ic_star_border)
-        } else if (nota > 3.0){
-            star1.setImageResource(R.drawable.ic_star_gold)
-            star2.setImageResource(R.drawable.ic_star_gold)
-            star3.setImageResource(R.drawable.ic_star_gold)
-            star4.setImageResource(R.drawable.ic_star_half)
-            star5.setImageResource(R.drawable.ic_star_half)
-        } else if (nota == 3.0){
-            star1.setImageResource(R.drawable.ic_star_gold)
-            star2.setImageResource(R.drawable.ic_star_gold)
-            star3.setImageResource(R.drawable.ic_star_gold)
-            star4.setImageResource(R.drawable.ic_star_border)
-            star5.setImageResource(R.drawable.ic_star_border)
-        } else if (nota > 2.0){
-            star1.setImageResource(R.drawable.ic_star_gold)
-            star2.setImageResource(R.drawable.ic_star_gold)
-            star3.setImageResource(R.drawable.ic_star_half)
-            star4.setImageResource(R.drawable.ic_star_half)
-            star5.setImageResource(R.drawable.ic_star_half)
-        } else if (nota == 2.0){
-            star1.setImageResource(R.drawable.ic_star_gold)
-            star2.setImageResource(R.drawable.ic_star_gold)
-            star3.setImageResource(R.drawable.ic_star_border)
-            star4.setImageResource(R.drawable.ic_star_border)
-            star5.setImageResource(R.drawable.ic_star_border)
-        } else if (nota > 1.0){
-            star1.setImageResource(R.drawable.ic_star_gold)
-            star2.setImageResource(R.drawable.ic_star_half)
-            star3.setImageResource(R.drawable.ic_star_half)
-            star4.setImageResource(R.drawable.ic_star_half)
-            star5.setImageResource(R.drawable.ic_star_half)
-        } else if (nota == 1.0){
-            star1.setImageResource(R.drawable.ic_star_gold)
-            star2.setImageResource(R.drawable.ic_star_border)
-            star3.setImageResource(R.drawable.ic_star_border)
-            star4.setImageResource(R.drawable.ic_star_border)
-            star5.setImageResource(R.drawable.ic_star_border)
-        } else if (nota > 0.0){
-            star1.setImageResource(R.drawable.ic_star_half)
-            star2.setImageResource(R.drawable.ic_star_half)
-            star3.setImageResource(R.drawable.ic_star_half)
-            star4.setImageResource(R.drawable.ic_star_half)
-            star5.setImageResource(R.drawable.ic_star_half)
-        } else if (nota == 0.0){
+        if (call.equals("avaliar")){
             star1.setImageResource(R.drawable.ic_star_border)
             star2.setImageResource(R.drawable.ic_star_border)
             star3.setImageResource(R.drawable.ic_star_border)
             star4.setImageResource(R.drawable.ic_star_border)
             star5.setImageResource(R.drawable.ic_star_border)
+
+            //os listeners estão no final
+            dolar1.setImageResource(R.drawable.dollarcinza)
+            dolar2.setImageResource(R.drawable.dollarcinza)
+            dolar3.setImageResource(R.drawable.dollarcinza)
+            dolar4.setImageResource(R.drawable.dollarcinza)
+            dolar5.setImageResource(R.drawable.dollarcinza)
+
+        } else {
+            if (nota == 5.0){
+                star1.setImageResource(R.drawable.ic_star_gold)
+                star2.setImageResource(R.drawable.ic_star_gold)
+                star3.setImageResource(R.drawable.ic_star_gold)
+                star4.setImageResource(R.drawable.ic_star_gold)
+                star5.setImageResource(R.drawable.ic_star_gold)
+            } else if (nota > 4.0){
+                star1.setImageResource(R.drawable.ic_star_gold)
+                star2.setImageResource(R.drawable.ic_star_gold)
+                star3.setImageResource(R.drawable.ic_star_gold)
+                star4.setImageResource(R.drawable.ic_star_gold)
+                star5.setImageResource(R.drawable.ic_star_half)
+            } else if (nota == 4.0){
+                star1.setImageResource(R.drawable.ic_star_gold)
+                star2.setImageResource(R.drawable.ic_star_gold)
+                star3.setImageResource(R.drawable.ic_star_gold)
+                star4.setImageResource(R.drawable.ic_star_gold)
+                star5.setImageResource(R.drawable.ic_star_border)
+            } else if (nota > 3.0){
+                star1.setImageResource(R.drawable.ic_star_gold)
+                star2.setImageResource(R.drawable.ic_star_gold)
+                star3.setImageResource(R.drawable.ic_star_gold)
+                star4.setImageResource(R.drawable.ic_star_half)
+                star5.setImageResource(R.drawable.ic_star_half)
+            } else if (nota == 3.0){
+                star1.setImageResource(R.drawable.ic_star_gold)
+                star2.setImageResource(R.drawable.ic_star_gold)
+                star3.setImageResource(R.drawable.ic_star_gold)
+                star4.setImageResource(R.drawable.ic_star_border)
+                star5.setImageResource(R.drawable.ic_star_border)
+            } else if (nota > 2.0){
+                star1.setImageResource(R.drawable.ic_star_gold)
+                star2.setImageResource(R.drawable.ic_star_gold)
+                star3.setImageResource(R.drawable.ic_star_half)
+                star4.setImageResource(R.drawable.ic_star_half)
+                star5.setImageResource(R.drawable.ic_star_half)
+            } else if (nota == 2.0){
+                star1.setImageResource(R.drawable.ic_star_gold)
+                star2.setImageResource(R.drawable.ic_star_gold)
+                star3.setImageResource(R.drawable.ic_star_border)
+                star4.setImageResource(R.drawable.ic_star_border)
+                star5.setImageResource(R.drawable.ic_star_border)
+            } else if (nota > 1.0){
+                star1.setImageResource(R.drawable.ic_star_gold)
+                star2.setImageResource(R.drawable.ic_star_half)
+                star3.setImageResource(R.drawable.ic_star_half)
+                star4.setImageResource(R.drawable.ic_star_half)
+                star5.setImageResource(R.drawable.ic_star_half)
+            } else if (nota == 1.0){
+                star1.setImageResource(R.drawable.ic_star_gold)
+                star2.setImageResource(R.drawable.ic_star_border)
+                star3.setImageResource(R.drawable.ic_star_border)
+                star4.setImageResource(R.drawable.ic_star_border)
+                star5.setImageResource(R.drawable.ic_star_border)
+            } else if (nota > 0.0){
+                star1.setImageResource(R.drawable.ic_star_half)
+                star2.setImageResource(R.drawable.ic_star_half)
+                star3.setImageResource(R.drawable.ic_star_half)
+                star4.setImageResource(R.drawable.ic_star_half)
+                star5.setImageResource(R.drawable.ic_star_half)
+            } else if (nota == 0.0){
+                star1.setImageResource(R.drawable.ic_star_border)
+                star2.setImageResource(R.drawable.ic_star_border)
+                star3.setImageResource(R.drawable.ic_star_border)
+                star4.setImageResource(R.drawable.ic_star_border)
+                star5.setImageResource(R.drawable.ic_star_border)
+            }
+
+
+            var str:String = custo.replace("R$", "")
+            str = str.replace(",", "").trim()
+            str = str.replace(".", "").trim()
+            val valorFormatado = str.toInt()
+
+
+            if (valorFormatado > 400) {
+                dolar1.setImageResource(R.drawable.dollar)
+                dolar2.setImageResource(R.drawable.dollar)
+                dolar3.setImageResource(R.drawable.dollar)
+                dolar4.setImageResource(R.drawable.dollar)
+                dolar5.setImageResource(R.drawable.dollar)
+
+            } else if (valorFormatado > 200) {
+                dolar1.setImageResource(R.drawable.dollar)
+                dolar2.setImageResource(R.drawable.dollar)
+                dolar3.setImageResource(R.drawable.dollar)
+                dolar4.setImageResource(R.drawable.dollar)
+            } else if (valorFormatado > 100) {
+                dolar1.setImageResource(R.drawable.dollar)
+                dolar2.setImageResource(R.drawable.dollar)
+                dolar3.setImageResource(R.drawable.dollar)
+            } else if (valorFormatado > 50) {
+                dolar1.setImageResource(R.drawable.dollar)
+                dolar2.setImageResource(R.drawable.dollar)
+            } else {
+                dolar1.setImageResource(R.drawable.dollar)
+            }
+
+            if (custo.equals("0")){
+                txtResumo.setText("Este lugar nunca foi avaliado.")
+            } else {
+                txtResumo.setText("Custo médio deste lugar é "+currencyTranslation(custo.toInt()))
+            }
+
+
+
         }
+
 
 
         // Set a dismiss listener for popup window
@@ -943,60 +1049,139 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             //é a abertura normal, exibindo o lugar, a nota e o custo
             buttonPopupS.setOnClickListener {
                 //ao clicar em avaliar chama este mesmo método desta vez para avaliar.
-                openPopUpPlaces("Avaliar "+titulo, "Você está avaliando", true, "Avaliar", "Cancelar", "avaliar", bd, custo, nota, tipo)
+                openPopUpPlaces("Avaliar "+titulo, "Você está avaliando", true, "Avaliar", "Cancelar", "avaliar", bd, custo, nota, tipo, avaliacoes)
+                popupWindow.dismiss()
             }
 
         } else if (call.equals("avaliar")){
 
-            buttonPopupS.setOnClickListener {
+            var notaInformada = 0
+            var custoInformado = 0
+            //a avaliacao das estrelas será feita aqui mesmo pra aproveitar que os widgets ja foram carregados em memória
+            star1.setOnClickListener {
+                star1.setImageResource(R.drawable.ic_star_gold)
+                star2.setImageResource(R.drawable.ic_star_border)
+                star3.setImageResource(R.drawable.ic_star_border)
+                star4.setImageResource(R.drawable.ic_star_border)
+                star5.setImageResource(R.drawable.ic_star_border)
+                notaInformada=1
+            }
+            star2.setOnClickListener {
+                star1.setImageResource(R.drawable.ic_star_gold)
+                star2.setImageResource(R.drawable.ic_star_gold)
+                star3.setImageResource(R.drawable.ic_star_border)
+                star4.setImageResource(R.drawable.ic_star_border)
+                star5.setImageResource(R.drawable.ic_star_border)
+                notaInformada=2
+            }
+            star3.setOnClickListener {
+                star1.setImageResource(R.drawable.ic_star_gold)
+                star2.setImageResource(R.drawable.ic_star_gold)
+                star3.setImageResource(R.drawable.ic_star_gold)
+                star4.setImageResource(R.drawable.ic_star_border)
+                star5.setImageResource(R.drawable.ic_star_border)
+                notaInformada=3
+            }
+            star4.setOnClickListener {
+                star1.setImageResource(R.drawable.ic_star_gold)
+                star2.setImageResource(R.drawable.ic_star_gold)
+                star3.setImageResource(R.drawable.ic_star_gold)
+                star4.setImageResource(R.drawable.ic_star_gold)
+                star5.setImageResource(R.drawable.ic_star_border)
+                notaInformada=4
+            }
+            star5.setOnClickListener {
+                star1.setImageResource(R.drawable.ic_star_gold)
+                star2.setImageResource(R.drawable.ic_star_gold)
+                star3.setImageResource(R.drawable.ic_star_gold)
+                star4.setImageResource(R.drawable.ic_star_gold)
+                star5.setImageResource(R.drawable.ic_star_gold)
+                notaInformada=5
+            }
+
+            //listeners dos clicks
+            dolar1.setOnClickListener {
+                dolar1.setImageResource(R.drawable.dollar)
+                dolar2.setImageResource(R.drawable.dollarcinza)
+                dolar3.setImageResource(R.drawable.dollarcinza)
+                dolar4.setImageResource(R.drawable.dollarcinza)
+                dolar5.setImageResource(R.drawable.dollarcinza)
+                custoInformado=25
+
+                txtResumo.setText("Você gastou menos de R$ 50,00")
+            }
+
+            dolar2.setOnClickListener {
+                dolar1.setImageResource(R.drawable.dollar)
+                dolar2.setImageResource(R.drawable.dollar)
+                dolar3.setImageResource(R.drawable.dollarcinza)
+                dolar4.setImageResource(R.drawable.dollarcinza)
+                dolar5.setImageResource(R.drawable.dollarcinza)
+
+                txtResumo.setText("Você gastou até R$ 50,00")
+                custoInformado=50
+            }
+
+            dolar3.setOnClickListener {
+                dolar1.setImageResource(R.drawable.dollar)
+                dolar2.setImageResource(R.drawable.dollar)
+                dolar3.setImageResource(R.drawable.dollar)
+                dolar4.setImageResource(R.drawable.dollarcinza)
+                dolar5.setImageResource(R.drawable.dollarcinza)
+
+                txtResumo.setText("Você gastou até R$ 100,00")
+                custoInformado=100
+            }
+
+            dolar4.setOnClickListener {
+                dolar1.setImageResource(R.drawable.dollar)
+                dolar2.setImageResource(R.drawable.dollar)
+                dolar3.setImageResource(R.drawable.dollar)
+                dolar4.setImageResource(R.drawable.dollar)
+                dolar5.setImageResource(R.drawable.dollarcinza)
+
+                txtResumo.setText("Você gastou até R$ 400,00")
+                custoInformado=250
+            }
+
+
+            dolar5.setOnClickListener {
+                dolar1.setImageResource(R.drawable.dollar)
+                dolar2.setImageResource(R.drawable.dollar)
+                dolar3.setImageResource(R.drawable.dollar)
+                dolar4.setImageResource(R.drawable.dollar)
+                dolar5.setImageResource(R.drawable.dollar)
+
+                txtResumo.setText("Você gastou R$ 400,00 ou mais")
+                custoInformado=400
 
             }
+
+            buttonPopupS.setOnClickListener {
+                //avaliar
+                if (notaInformada==0){
+                    showToast("Avalie a qualidade do lugar. Isso ajuda seus amigos.")
+                } else if (custoInformado==0){
+                    showToast("Avalie o custo. Isso ajuda seus amigos.")
+                } else {
+
+                    val novaNota = (notaInformada + nota) / avaliacoes.toInt()
+                    val novoCusto = (custoInformado.toDouble() / custo.toDouble()) / avaliacoes.toInt()
+
+                    databaseReference.child("places").child(bd).child("nota").setValue(currencyTranslation(novaNota.toInt()))
+                    databaseReference.child("places").child(bd).child("custo").setValue(currencyTranslation(novoCusto.toInt()))
+                    databaseReference.child("places").child(bd).child("avaliacoes").setValue(avaliacoes.toInt()+1)
+                    showToast("Você avaliou este lugar. Agora seus amigos poderão saber o que você achou.")
+                    popupWindow.dismiss()
+                }
+
+            }
+
             //fun openPopUpPlaces (titulo: String, texto:String, exibeBtnOpcoes:Boolean, btnSim: String, btnNao: String, call: String, bd: String, custo: String, nota: Double, tipo: String) {
         }
 
     }
 
-    fun showCosts(custo: String, avaliar: Boolean){
-
-        val dolar1: ImageView = findViewById(R.id.placesPopup_custo_dolar1)
-        val dolar2: ImageView = findViewById(R.id.placesPopup_custo_dolar2)
-        val dolar3: ImageView = findViewById(R.id.placesPopup_custo_dolar3)
-        val dolar4: ImageView = findViewById(R.id.placesPopup_custo_dolar4)
-        val dolar5: ImageView = findViewById(R.id.placesPopup_custo_dolar5)
-        val txtResumo: TextView = findViewById(R.id.placesPopup_custo)
-
-        var str:String = custo.replace("R$", "")
-        str = str.replace(",", "").trim()
-        str = str.replace(".", "").trim()
-
-        val valorFormatado = str.toInt()
-
-        if (valorFormatado > 400){
-            dolar1.setImageResource(R.drawable.dollar)
-            dolar2.setImageResource(R.drawable.dollar)
-            dolar3.setImageResource(R.drawable.dollar)
-            dolar4.setImageResource(R.drawable.dollar)
-            dolar5.setImageResource(R.drawable.dollar)
-        } else if (valorFormatado > 200){
-            dolar1.setImageResource(R.drawable.dollar)
-            dolar2.setImageResource(R.drawable.dollar)
-            dolar3.setImageResource(R.drawable.dollar)
-            dolar4.setImageResource(R.drawable.dollar)
-        } else if (valorFormatado > 100){
-            dolar1.setImageResource(R.drawable.dollar)
-            dolar2.setImageResource(R.drawable.dollar)
-            dolar3.setImageResource(R.drawable.dollar)
-        } else if (valorFormatado > 50){
-            dolar1.setImageResource(R.drawable.dollar)
-            dolar2.setImageResource(R.drawable.dollar)
-        } else {
-            dolar1.setImageResource(R.drawable.dollar)
-        }
-
-        txtResumo.setText("Custo médio relatado é "+custo)
-
-
-    }
 
     //corrige o valor informado pelo seekBar em dinheiro
     fun currencyTranslation(valorOriginal: Int): String{
@@ -1091,6 +1276,285 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         return valorString
 
     }
+
+
+
+
+
+
+
+
+
+
+
+
+    //
+    fun addNewPlace(){
+
+        val layMaps: ConstraintLayout = findViewById(R.id.layMapa)
+        val layCad: ConstraintLayout = findViewById(R.id.layCadPlace)
+        layMaps.visibility = View.GONE
+        layCad.visibility = View.VISIBLE
+
+
+        val btnCad: Button = findViewById(R.id.cadPlace_btnCad)
+
+
+        val etEndereco: EditText = findViewById(R.id.cadPlace_etEndereco)
+        val btnDigitarEndereco: Button = findViewById(R.id.cadPlace_btnNaoEstaNoLugar)
+        btnDigitarEndereco.setOnClickListener {
+            etEndereco.visibility = View.VISIBLE
+            etEndereco.hint = "Digite o endereço aqui"
+        }
+
+        val btnPegarEndereco: Button = findViewById(R.id.cadPlace_btnEstaNoLugar)
+        btnPegarEndereco.setOnClickListener {
+            etEndereco.visibility = View.VISIBLE
+            val latLong : LatLng = LatLng(lastLocation.latitude, lastLocation.longitude)
+            etEndereco.setText(getAddress(latLong))
+        }
+
+
+
+
+        val spinner: Spinner = findViewById(R.id.cadPlace_spinner)
+        var list_of_items = arrayOf(
+            "Selecione o tipo",
+            "Borracharia",
+            "Espaço público",
+            "Hotel",
+            "Oficina",
+            "Parada CCR",
+            "Posto gasolina",
+            "Posto de saúde",
+            "Restaurante"
+        )
+
+        var tipo = "Selecione o tipo"
+
+        //Adapter for spinner
+        spinner.adapter =
+            ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, list_of_items)
+
+        //item selected listener for spinner
+        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onNothingSelected(p0: AdapterView<*>?) {
+
+            }
+
+            override fun onItemSelected(
+                parent: AdapterView<*>?,
+                view: View?,
+                position: Int,
+                id: Long
+            ) {
+                tipo = list_of_items[position]
+
+            }
+        }
+
+
+
+        btnCad.setOnClickListener {
+            val etNome: EditText = findViewById(R.id.cadPlace_etNome)
+
+            if (etNome.text.isEmpty()){
+                etNome.requestFocus()
+                etNome.setError("Informe o nome do lugar")
+            } else if (etEndereco.text.isEmpty()){
+                etEndereco.requestFocus()
+                etEndereco.setError("Informe o endereço")
+            } else if (tipo.equals("Selecione o tipo")){
+                showToast("Informe o tipo de estabelecimento")
+            } else {
+
+                ChamaDialog()
+                val newCad: String = databaseReference.child("places").push().key.toString()
+                getLatLong(etEndereco.text.toString(), newCad) //aqui vai salvar as informações de localização neste mesmo bd
+                databaseReference.child("places").child(newCad).child("avaliacoes").setValue(0)
+                databaseReference.child("places").child(newCad).child("custo").setValue("R$0,00")
+                databaseReference.child("places").child(newCad).child("nome").setValue(etNome.text.toString())
+                databaseReference.child("places").child(newCad).child("nota").setValue(0)
+                databaseReference.child("places").child(newCad).child("tipo").setValue(tipo)
+
+                layCad.visibility = View.GONE
+                layMaps.visibility = View.VISIBLE
+                EncerraDialog()
+                showToast("Pronto! O lugar foi adicionado")
+                findPlacesNerby(lastLocation.latitude, lastLocation.longitude)
+
+            }
+
+
+        }
+
+
+    }
+
+
+
+
+
+
+
+
+
+    //métodos de busca de enderço a partir de Latitude e Longitude ou o contrário
+    //private fun getAddress(latLng: LatLng): String {
+    private fun getAddress(latLng: LatLng): String {
+        // 1
+        ChamaDialog()
+        val geocoder = Geocoder(this)
+        val addresses: List<Address>?
+        //val address: Address?
+        var addressText = ""
+
+        val enderecoUser: MutableList<String> = ArrayList()
+
+        try {
+            // 2
+            addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1)
+            // 3
+            if (null != addresses && !addresses.isEmpty()) {
+
+
+                if (addresses[0].countryName == null){
+
+                } else {
+                    enderecoUser.add(addresses[0].countryName)
+                }
+
+                if (addresses[0].postalCode == null){
+
+                } else {
+                    enderecoUser.add(addresses[0].postalCode)
+                }
+
+                if (addresses[0].adminArea == null){ //estado
+
+                } else {
+                    enderecoUser.add(addresses[0].adminArea)
+                }
+
+                //este é diferente pq as vezes o estado vem em subadminarea e as vezes em locality. Entao ele testa
+                if (addresses[0].locality == null) {
+                    //mUserCidade = addresses[0].subAdminArea
+                    enderecoUser.add(addresses[0].subAdminArea)
+                } else {
+                    //mUserCidade = addresses[0].locality
+                    enderecoUser.add(addresses[0].locality)
+                }
+
+                if (addresses[0].subLocality == null){
+
+                } else{
+                    enderecoUser.add(addresses[0].subLocality)
+                }
+
+                if (addresses[0].subThoroughfare == null){
+
+                } else {
+                    enderecoUser.add(addresses[0].subThoroughfare)
+                }
+
+                if (addresses[0].thoroughfare == null){
+
+                } else {
+                    enderecoUser.add(addresses[0].thoroughfare)
+                }
+
+
+
+                var cont=0
+                val size = enderecoUser.size-1  //pq o tamanho conta o 0. Entãodigamos, um array de tamanho 6 vai só até 5. Ai dava erro.
+                while (cont<enderecoUser.size){
+                    addressText = addressText+" "+enderecoUser.get(size-cont).toString()
+                    cont++
+                }
+                /*
+                /*
+                array   pos 0 - cidade
+                        pos 1 - estado
+                        pos 2 - bairro
+                        pos 3 - numero Casa
+                        pos 4 - rua
+                        pos 5 - cep
+                 */
+                addressText =
+                    enderecoUser.get(4) + " nº " + enderecoUser.get(3) + ", " + enderecoUser.get(2) + ", " + enderecoUser.get(0) + " - " + enderecoUser.get(1)
+
+                 */
+            }
+        } catch (e: IOException) {
+            Log.e("MapsActivity", e.localizedMessage)
+        }
+
+        EncerraDialog()
+        return addressText
+
+    }
+
+    //pega a latitude e longitude a partir de um endereço
+    private fun getLatLong (endereco: String, bd: String){
+
+        ChamaDialog()
+        val geocoder = Geocoder(this)
+        //val addresses: List<Address>?
+        //val address: Address?
+        //var addressText = ""
+
+        //Geocoder coder = new Geocoder(this);
+        val address : List<Address>?
+        //GeoPoint p1 = null;
+
+        try {
+            address = geocoder.getFromLocationName(endereco,1)
+
+            if (address==null) {
+                Toast.makeText(this, "Não foi possível encontrar a localização ainda. Aguarde", Toast.LENGTH_SHORT).show()
+                val timer = object: CountDownTimer(40000, 1000) {
+                    override fun onTick(millisUntilFinished: Long) {}
+
+                    override fun onFinish() {
+                        getLatLong(endereco, bd)
+                    }
+                }
+                timer.start()
+            } else {
+                var location: Address = address.get(0)
+                //location.getLatitude();
+                //location.getLongitude();
+
+                databaseReference.child("places").child(bd).child("lat")
+                    .setValue(location.latitude)
+                databaseReference.child("places").child(bd).child("long")
+                    .setValue(location.longitude)
+                databaseReference.child("places").child(bd).child("latlong")
+                    .setValue(location.latitude + location.longitude)
+
+            }
+        }catch (e: IOException) {
+            Log.e("MapsActivity", e.localizedMessage)
+        }
+
+        EncerraDialog()
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
