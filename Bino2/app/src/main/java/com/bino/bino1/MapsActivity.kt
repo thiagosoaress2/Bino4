@@ -3,6 +3,7 @@ package com.bino.bino1
 import android.Manifest
 import android.content.Context
 import android.content.IntentSender
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.graphics.*
 import android.graphics.drawable.Drawable
@@ -66,6 +67,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
     val arrayPlacesNerby: MutableList<Marker> = ArrayList()
 
+    val arrayUserInfos: MutableList<String> = ArrayList()
+
+    var userIsVisibile = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -77,7 +81,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
         databaseReference = FirebaseDatabase.getInstance().reference
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-        userBd = "teste"  //este valor vai vir de login
 
         //recupera o email do usuário
         userMail = intent.getStringExtra("email")
@@ -85,14 +88,17 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
         if (!requestPermission()){
             requestThePermission()
-        } else {
-
         }
 
 
         requestToOpenGpsLikeWaze()  //liga o GPS do user
 
         firstMeths()
+
+        if (!userMail.equals("semlogin")){
+            //verificar se já inseriu código
+            queryGetUserInfos()
+        }
 
     }
 
@@ -108,7 +114,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         }
 
         btnLogin.setOnClickListener {
-
             auth = FirebaseAuth.getInstance()
             auth.signOut()
             finish()
@@ -118,6 +123,158 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         btnAddLugar.setOnClickListener {
             addNewPlace()
         }
+
+        val btnGenerateCode: Button = findViewById(R.id.btnGenerateCode)
+        btnGenerateCode.setOnClickListener {
+            generateCode()
+        }
+
+        val btnVisibleInvisible: Button = findViewById(R.id.btnVisibleInvisible)
+        btnVisibleInvisible.setOnClickListener {
+            if (userIsVisibile){
+                updateUserStatus("offline", "null")
+                showToast("Você está invisivel")
+                btnVisibleInvisible.setText("Ficar visível")
+            } else {
+                updateUserStatus("online", "nao")
+                showToast("Você está visível")
+                btnVisibleInvisible.setText("Ficar invisivel")
+            }
+        }
+    }
+
+    fun queryGetUserInfos() {
+
+        ChamaDialog()
+        val rootRef = databaseReference.child("usuarios")
+        rootRef.orderByChild("email").equalTo(userMail).limitToFirst(1)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+
+                    if (dataSnapshot.exists()){
+
+                        for (querySnapshot in dataSnapshot.children) {
+
+                            var values: String= "nao"
+                            values = querySnapshot.child("nEmergencia").value.toString()
+                            arrayUserInfos.add(values)
+
+                            values = querySnapshot.child("nome").value.toString()
+                            arrayUserInfos.add(values)
+
+                            values = querySnapshot.child("img").value.toString()
+                            arrayUserInfos.add(values)
+
+                            values = querySnapshot.key.toString()
+                            arrayUserInfos.add(values)
+                            userBd = values
+
+                            values = querySnapshot.child("avaliacoes").value.toString()
+                            arrayUserInfos.add(values)
+
+                            values = querySnapshot.child("code").value.toString()
+                            if (values.equals("nao")){
+                                verificaCode()
+                            }
+
+                            EncerraDialog()
+
+                        }
+
+                    } else {
+                        showToast("Usuário não encontrado")
+                    }
+
+
+                }
+
+                override fun onCancelled(databaseError: DatabaseError) {
+                    // Getting Post failed, log a message
+                    EncerraDialog()
+                    // ...
+                }
+            })
+
+
+    }
+
+    fun metodosPosQuery(){
+
+
+    }
+
+    fun verificaCode(){
+
+        val layVerifyCode: ConstraintLayout = findViewById(R.id.layVerifyCode)
+        val layMaps: ConstraintLayout = findViewById(R.id.layMapa)
+
+        layMaps.visibility = View.GONE
+        layVerifyCode.visibility = View.VISIBLE
+
+        val etCode: EditText = findViewById(R.id.verifyCode_etCode)
+        val btnVerify : Button = findViewById(R.id.verifyCode_btnVerifica)
+
+        Log.d("teste", "chegou na verificaCode")
+        btnVerify.setOnClickListener {
+            if (etCode.text.isEmpty()){
+                etCode.performClick()
+                etCode.setError("Informe o código")
+            } else {
+                queryCode(etCode.text.toString())
+            }
+        }
+
+    }
+
+    //prpcura se o codigo realmente existe
+    fun queryCode(code: String){
+
+        ChamaDialog()
+        Log.d("teste", "Chegou aqui")
+        val rootRef = databaseReference.child("code")
+        rootRef.orderByChild("code").equalTo(code).limitToFirst(1)
+            //getInstance().reference.child("usuarios").orderByChild("email").equalTo(userMail)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+
+                    if (dataSnapshot.exists()){
+
+                        for (querySnapshot in dataSnapshot.children) {
+
+                            Log.d("teste", "Entrou na query")
+
+                            val fiador = querySnapshot.child("fiador").getValue().toString()
+                            databaseReference.child("usuarios").child(arrayUserInfos.get(3)).child("code").setValue("sim")
+                            databaseReference.child("usuarios").child(arrayUserInfos.get(3)).child("fiador").setValue(fiador)
+
+                            val key = querySnapshot.key.toString()
+                            databaseReference.child("code").child(key).removeValue()
+
+                            val layVerifyCode: ConstraintLayout = findViewById(R.id.layVerifyCode)
+                            val layMaps: ConstraintLayout = findViewById(R.id.layMapa)
+
+                            layMaps.visibility = View.VISIBLE
+                            layVerifyCode.visibility = View.GONE
+
+                            EncerraDialog()
+
+                        }
+
+                    } else {
+                        showToast("Este código não existe.")
+                        EncerraDialog()
+                    }
+
+
+                }
+
+                override fun onCancelled(databaseError: DatabaseError) {
+                    // Getting Post failed, log a message
+                    showToast("Este código não existe.")
+                    EncerraDialog()
+                    // ...
+                }
+            })
 
     }
 
@@ -188,6 +345,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                         findPlacesNerby(location.latitude, location.longitude)
                         findNewPlacesAsUserMoves(location.latitude, location.longitude)
 
+                    } else {
+
+                        findPlacesNerby(location.latitude, location.longitude)
+                        findNewPlacesAsUserMoves(location.latitude, location.longitude)
                     }
 
 
@@ -321,6 +482,54 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
 
 
+
+
+
+
+
+    fun generateCode(){
+
+        val layMaps: ConstraintLayout = findViewById(R.id.layMapa)
+        val layGenerateCode: ConstraintLayout = findViewById(R.id.layGenerateCode)
+
+        layMaps.visibility = View.GONE
+        layGenerateCode.visibility = View.VISIBLE
+
+        val btnGerarCodigo: Button = findViewById(R.id.generateCode_btnGerar)
+        val etCodigo: EditText = findViewById(R.id.generateCode_etCode)
+
+        val btnFechar: Button = findViewById(R.id.generateCode_btnFechar)
+        btnFechar.setOnClickListener {
+            layMaps.visibility = View.VISIBLE
+            layGenerateCode.visibility = View.GONE
+        }
+
+        btnGerarCodigo.setOnClickListener {
+
+            if (userMail.equals("semLogin")){
+                showToast("Você precisa fazer login para isso")
+            } else {
+                val code1 = rand(0, 9)
+                val code2 = rand(0, 9)
+                val code3 = rand(0, 9)
+                val code4 = rand(0, 9)
+                val code5 = rand(0, 9)
+
+                val codeFinal = (code1.toString()+code2.toString()+code3.toString()+code4.toString()+code5.toString()).toString()
+                val newCad: DatabaseReference = databaseReference.child("code").child("code").push()
+                newCad.child("code").setValue(codeFinal)
+                newCad.child("fiador").setValue(userBd)
+
+                showToast("Codigo criado")
+                etCodigo.setText(codeFinal)
+            }
+        }
+    }
+
+    fun rand(start: Int, end: Int): Int {
+        require(start <= end) { "Illegal Argument" }
+        return (start..end).random()
+    }
 
 
 
@@ -562,9 +771,59 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
         if (tipo.equals("Restaurante")){
             val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo+"!?!"+nome+"!?!"+avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurante)))
-            arrayTruckersNerby.add(mark1)
+            arrayPlacesNerby.add(mark1)
             mark1.tag=0
             mMap.setOnMarkerClickListener(this)
+
+        } else if (tipo.equals("Borracharia")){
+
+            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo+"!?!"+nome+"!?!"+avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurante)))
+            arrayPlacesNerby.add(mark1)
+            mark1.tag=0
+            mMap.setOnMarkerClickListener(this)
+
+        } else if (tipo.equals("Espaço público")){
+
+            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo+"!?!"+nome+"!?!"+avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurante)))
+            arrayPlacesNerby.add(mark1)
+            mark1.tag=0
+            mMap.setOnMarkerClickListener(this)
+
+        } else if (tipo.equals("Hotel")){
+
+            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo+"!?!"+nome+"!?!"+avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurante)))
+            arrayPlacesNerby.add(mark1)
+            mark1.tag=0
+            mMap.setOnMarkerClickListener(this)
+
+        } else if (tipo.equals("Oficina")){
+
+            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo+"!?!"+nome+"!?!"+avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurante)))
+            arrayPlacesNerby.add(mark1)
+            mark1.tag=0
+            mMap.setOnMarkerClickListener(this)
+
+        } else if (tipo.equals("Parada CCR")){
+
+            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo+"!?!"+nome+"!?!"+avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurante)))
+            arrayPlacesNerby.add(mark1)
+            mark1.tag=0
+            mMap.setOnMarkerClickListener(this)
+
+        } else if (tipo.equals("Posto gasolina")){
+
+            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo+"!?!"+nome+"!?!"+avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurante)))
+            arrayPlacesNerby.add(mark1)
+            mark1.tag=0
+            mMap.setOnMarkerClickListener(this)
+
+        } else if (tipo.equals("Posto de saúde")){
+
+            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo+"!?!"+nome+"!?!"+avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurante)))
+            arrayPlacesNerby.add(mark1)
+            mark1.tag=0
+            mMap.setOnMarkerClickListener(this)
+
         }
 
 
@@ -1049,9 +1308,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             if (custo.equals("R$0,00")){
                 txtResumo.setText("Este lugar nunca foi avaliado.")
             } else {
-                txtResumo.setText("Custo médio deste lugar é "+currencyTranslation(custo.toInt()))
+                txtResumo.setText("Custo médio deste lugar é "+currencyTranslation(valorFormatado))
             }
-
 
 
         }
@@ -1079,11 +1337,16 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         //aqui colocamos os ifs com cada call de cada vez que a popup for chamada
         if (call.equals("places")) {
             //é a abertura normal, exibindo o lugar, a nota e o custo
-            buttonPopupS.setOnClickListener {
-                //ao clicar em avaliar chama este mesmo método desta vez para avaliar.
-                openPopUpPlaces("Avaliar "+titulo, "Você está avaliando", true, "Avaliar", "Cancelar", "avaliar", bd, custo, nota, tipo, avaliacoes)
-                popupWindow.dismiss()
+            if (!userMail.equals("semLogin")){
+                buttonPopupS.setOnClickListener {
+                    //ao clicar em avaliar chama este mesmo método desta vez para avaliar.
+                    openPopUpPlaces("Avaliar "+titulo, "Você está avaliando", true, "Avaliar", "Cancelar", "avaliar", bd, custo, nota, tipo, avaliacoes)
+                    popupWindow.dismiss()
+                }
+            } else {
+                showToast("Você precisa estar logado para avaliar.")
             }
+
 
         } else if (call.equals("avaliar")){
 
