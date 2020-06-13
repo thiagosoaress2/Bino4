@@ -12,6 +12,7 @@ import android.graphics.drawable.Drawable
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.CountDownTimer
@@ -852,28 +853,28 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
         } else if (tipo.equals("Borracharia")){
 
-            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo+"!?!"+nome+"!?!"+avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurante)))
+            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo+"!?!"+nome+"!?!"+avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.borracharia)))
             arrayPlacesNerby.add(mark1)
             mark1.tag=0
             mMap.setOnMarkerClickListener(this)
 
         } else if (tipo.equals("Espaço público")){
 
-            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo+"!?!"+nome+"!?!"+avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurante)))
+            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo+"!?!"+nome+"!?!"+avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.parque)))
             arrayPlacesNerby.add(mark1)
             mark1.tag=0
             mMap.setOnMarkerClickListener(this)
 
         } else if (tipo.equals("Hotel")){
 
-            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo+"!?!"+nome+"!?!"+avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurante)))
+            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo+"!?!"+nome+"!?!"+avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.hotel)))
             arrayPlacesNerby.add(mark1)
             mark1.tag=0
             mMap.setOnMarkerClickListener(this)
 
         } else if (tipo.equals("Oficina")){
 
-            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo+"!?!"+nome+"!?!"+avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurante)))
+            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo+"!?!"+nome+"!?!"+avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.oficina)))
             arrayPlacesNerby.add(mark1)
             mark1.tag=0
             mMap.setOnMarkerClickListener(this)
@@ -887,14 +888,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
         } else if (tipo.equals("Posto gasolina")){
 
-            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo+"!?!"+nome+"!?!"+avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurante)))
+            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo+"!?!"+nome+"!?!"+avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.mdi_local_gas_station)))
             arrayPlacesNerby.add(mark1)
             mark1.tag=0
             mMap.setOnMarkerClickListener(this)
 
         } else if (tipo.equals("Posto de saúde")){
 
-            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo+"!?!"+nome+"!?!"+avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurante)))
+            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo+"!?!"+nome+"!?!"+avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.postosaude)))
             arrayPlacesNerby.add(mark1)
             mark1.tag=0
             mMap.setOnMarkerClickListener(this)
@@ -1011,7 +1012,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                 val img = tokens.nextToken()
 
                 //abrir popup
-                openPopUp("Chamar este caminhoneiro?", "Você deseja abrir o whatsapp?", true, "Sim, abrir", "Não", "trucker", bdDoUser)
+                //openPopUp("Chamar este caminhoneiro?", "Você deseja abrir o whatsapp?", true, "Sim, abrir", "Não", "trucker", bdDoUser)
+                openPopUpTrucker("")
 
             } else if (bd.contains("place!?!")){
 
@@ -1147,6 +1149,105 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             //abrir Whatsapp
             Toast.makeText(this, "Funcionou", Toast.LENGTH_SHORT).show()
         }
+
+    }
+
+    //abre popup exclusiva do caminhoneiro. USada quando clica no simbolo no mapa
+    fun openPopUpTrucker (titulo: String, texto:String, bd: String, img: String, whatsapp: String, nome: String) {
+        //exibeBtnOpcoes - se for não, vai exibir apenas o botão com OK, sem opção. Senão, exibe dois botões e pega os textos deles de btnSim e btnNao
+
+        //EXIBIR POPUP
+        // Initialize a new layout inflater instance
+        val inflater: LayoutInflater = getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+
+        // Inflate a custom view using layout inflater
+        val view = inflater.inflate(R.layout.popup_trucker,null)
+
+        // Initialize a new instance of popup window
+        val popupWindow = PopupWindow(
+            view, // Custom view to show in popup window
+            LinearLayout.LayoutParams.MATCH_PARENT, // Width of popup window
+            LinearLayout.LayoutParams.WRAP_CONTENT // Window height
+        )
+
+
+
+        // Set an elevation for the popup window
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            popupWindow.elevation = 10.0F
+        }
+
+
+        // If API level 23 or higher then execute the code
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+            // Create a new slide animation for popup window enter transition
+            val slideIn = Slide()
+            slideIn.slideEdge = Gravity.TOP
+            popupWindow.enterTransition = slideIn
+
+            // Slide animation for popup window exit transition
+            val slideOut = Slide()
+            slideOut.slideEdge = Gravity.RIGHT
+            popupWindow.exitTransition = slideOut
+
+        }
+
+
+        // Get the widgets reference from custom view
+        val buttonPopupN = view.findViewById<Button>(R.id.btnReclamar)
+        val buttonPopupS = view.findViewById<Button>(R.id.BtnRecebimento)
+        val txtTitulo = view.findViewById<TextView>(R.id.popupTitulo)
+        val txtTexto = view.findViewById<TextView>(R.id.popupTexto)
+        val imageView = view.findViewById<ImageView>(R.id.imageView)
+
+
+        txtTitulo.text = nome
+        txtTexto.text = texto
+
+        buttonPopupN.setOnClickListener {
+            popupWindow.dismiss()
+        }
+
+        buttonPopupS.setOnClickListener {
+            openWhatsApp(whatsapp)
+            popupWindow.dismiss()
+        }
+
+        if (img.equals("nao")){
+            imageView.visibility = View.GONE
+        } else {
+            try {
+                Glide.with(applicationContext)
+                    .load(img)
+                    .thumbnail(0.9f)
+                    .skipMemoryCache(true)
+                    .transform(CircleTransform(this)) // applying the image transformer
+                    .into(imageView)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
+
+        // Set a dismiss listener for popup window
+        popupWindow.setOnDismissListener {
+            //Fecha a janela ao clicar fora também
+            popupWindow.dismiss()
+        }
+
+        //lay_root é o layout parent que vou colocar a popup
+        val lay_root: ConstraintLayout = findViewById(R.id.layPai)
+
+        // Finally, show the popup window on app
+        TransitionManager.beginDelayedTransition(lay_root)
+        popupWindow.showAtLocation(
+            lay_root, // Location to display popup window
+            Gravity.CENTER, // Exact position of layout to display popup
+            0, // X offset
+            0 // Y offset
+        )
+
+
 
     }
 
@@ -1561,6 +1662,34 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             //fun openPopUpPlaces (titulo: String, texto:String, exibeBtnOpcoes:Boolean, btnSim: String, btnNao: String, call: String, bd: String, custo: String, nota: Double, tipo: String) {
         }
 
+    }
+
+
+
+
+
+    //mandar mensagem pra outro caminhoneiro
+    fun openWhatsApp(number: String){
+
+        val pm:PackageManager = getPackageManager();
+        try {
+            val waIntent: Intent = Intent(Intent.ACTION_SEND);
+            waIntent.setType("text/plain");
+            val text: String  = "Mensagem automática” // Replace with your own message.
+
+            val toNumber = number // Replace with mobile phone number without +Sign or leading zeros, but with country code
+            //Suppose your country is India and your phone number is “xxxxxxxxxx”, then you need to send “91xxxxxxxxxx”.
+
+            val intent = Intent(Intent.ACTION_VIEW)
+            intent.data = Uri.parse("http://api.whatsapp.com/send?phone=$toNumber&text=$text")
+            startActivity(intent)
+
+        } catch (e:PackageManager.NameNotFoundException ) {
+            Toast.makeText(this, "WhatsApp não está instalado neste celular", Toast.LENGTH_SHORT)
+                .show();
+        }catch(e:Exception){
+
+        }
     }
 
 
