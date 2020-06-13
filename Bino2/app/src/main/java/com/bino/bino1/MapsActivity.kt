@@ -4,7 +4,12 @@ import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.IntentSender
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.graphics.*
+import android.graphics.drawable.Drawable
+import android.location.Address
+import android.location.Geocoder
 import android.location.Location
 import android.os.Build
 import android.os.Bundle
@@ -21,8 +26,14 @@ import androidx.appcompat.widget.Toolbar
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
+
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
@@ -41,7 +52,10 @@ import com.google.android.material.navigation.NavigationView
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
+
 import kotlinx.android.synthetic.main.activity_menu.*
+import java.io.IOException
+
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -61,6 +75,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
     val arrayTruckersNerby: MutableList<Marker> = ArrayList()
     val arrayPlacesNerby: MutableList<Marker> = ArrayList()
 
+    val arrayUserInfos: MutableList<String> = ArrayList()
+
+    var userIsVisibile = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -74,17 +91,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
         databaseReference = FirebaseDatabase.getInstance().reference
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-        userBd = "teste"  //este valor vai vir de login
 
         //recupera o email do usuário
         userMail = intent.getStringExtra("email")
 
-        Log.d("teste", "o valor de usermail é "+userMail)
 
         if (!requestPermission()){
             requestThePermission()
-        } else {
-
         }
 
         fab.setOnClickListener(View.OnClickListener { view ->
@@ -106,6 +119,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
         requestToOpenGpsLikeWaze()  //liga o GPS do user
         firstMeths()
+
+        if (!userMail.equals("semlogin")){
+            //verificar se já inseriu código
+            queryGetUserInfos()
+        }
 
     }
 
@@ -160,11 +178,194 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         }
 
         btnLogin.setOnClickListener {
-
             auth = FirebaseAuth.getInstance()
             auth.signOut()
             finish()
         }
+
+        val btnAddLugar: Button = findViewById(R.id.btnAddPlace)
+        btnAddLugar.setOnClickListener {
+            addNewPlace()
+        }
+
+        val btnGenerateCode: Button = findViewById(R.id.btnGenerateCode)
+        btnGenerateCode.setOnClickListener {
+            generateCode()
+        }
+
+        val btnVisibleInvisible: Button = findViewById(R.id.btnVisibleInvisible)
+        btnVisibleInvisible.setOnClickListener {
+
+            if (userMail.equals("semLogin")){
+                showToast("Você precisa estar logado para fazer isso")
+            } else {
+
+                if (userIsVisibile) {
+                    updateUserStatus("offline", "null")
+                    showToast("Você está invisivel")
+                    btnVisibleInvisible.setText("Ficar visível")
+                } else {
+                    updateUserStatus("online", arrayUserInfos.get(2).toString())
+                    showToast("Você está visível")
+                    btnVisibleInvisible.setText("Ficar invisivel")
+                }
+            }
+        }
+
+        val btnEditarPerfil : Button = findViewById(R.id.btnPerfil)
+        btnEditarPerfil.setOnClickListener {
+
+            if (userMail.equals("semLogin")){
+                showToast("Você precisa estar logado para fazer isso")
+            } else {
+
+                val intent = Intent(this, perfilActivity::class.java)
+                intent.putExtra("nEmergencia", arrayUserInfos.get(0))
+                intent.putExtra("nome", arrayUserInfos.get(1))
+                intent.putExtra("img", arrayUserInfos.get(2))
+                intent.putExtra("userBd", arrayUserInfos.get(3))
+
+                startActivity(intent)
+            }
+        }
+    }
+
+    fun queryGetUserInfos() {
+
+        ChamaDialog()
+        val rootRef = databaseReference.child("usuarios")
+        rootRef.orderByChild("email").equalTo(userMail).limitToFirst(1)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+
+                    if (dataSnapshot.exists()){
+
+                        for (querySnapshot in dataSnapshot.children) {
+
+                            var values: String= "nao"
+                            values = querySnapshot.child("nEmergencia").value.toString()
+                            arrayUserInfos.add(values)
+
+                            values = querySnapshot.child("nome").value.toString()
+                            arrayUserInfos.add(values)
+
+                            values = querySnapshot.child("img").value.toString()
+                            arrayUserInfos.add(values)
+
+                            values = querySnapshot.key.toString()
+                            arrayUserInfos.add(values)
+                            userBd = values
+
+                            values = querySnapshot.child("avaliacoes").value.toString()
+                            arrayUserInfos.add(values)
+
+                            values = querySnapshot.child("code").value.toString()
+                            if (values.equals("nao")){
+                                verificaCode()
+                            }
+
+                            /*
+                            pos 0 - nEmergencia
+                            pos 1 - nome
+                            pos 2 - img
+                            pos 3 - bd
+                            pos 4 - avaliacoes
+
+                             */
+
+                            EncerraDialog()
+
+                        }
+
+                    } else {
+                        showToast("Usuário não encontrado")
+                    }
+
+
+                }
+
+                override fun onCancelled(databaseError: DatabaseError) {
+                    // Getting Post failed, log a message
+                    EncerraDialog()
+                    // ...
+                }
+            })
+
+
+    }
+
+    fun verificaCode(){
+
+        val layVerifyCode: ConstraintLayout = findViewById(R.id.layVerifyCode)
+        val layMaps: ConstraintLayout = findViewById(R.id.layMapa)
+
+        layMaps.visibility = View.GONE
+        layVerifyCode.visibility = View.VISIBLE
+
+        val etCode: EditText = findViewById(R.id.verifyCode_etCode)
+        val btnVerify : Button = findViewById(R.id.verifyCode_btnVerifica)
+
+        Log.d("teste", "chegou na verificaCode")
+        btnVerify.setOnClickListener {
+            if (etCode.text.isEmpty()){
+                etCode.performClick()
+                etCode.setError("Informe o código")
+            } else {
+                queryCode(etCode.text.toString())
+            }
+        }
+
+    }
+
+    //prpcura se o codigo realmente existe
+    fun queryCode(code: String){
+
+        ChamaDialog()
+        Log.d("teste", "Chegou aqui")
+        val rootRef = databaseReference.child("code")
+        rootRef.orderByChild("code").equalTo(code).limitToFirst(1)
+            //getInstance().reference.child("usuarios").orderByChild("email").equalTo(userMail)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+
+                    if (dataSnapshot.exists()){
+
+                        for (querySnapshot in dataSnapshot.children) {
+
+                            Log.d("teste", "Entrou na query")
+
+                            val fiador = querySnapshot.child("fiador").getValue().toString()
+                            databaseReference.child("usuarios").child(arrayUserInfos.get(3)).child("code").setValue("sim")
+                            databaseReference.child("usuarios").child(arrayUserInfos.get(3)).child("fiador").setValue(fiador)
+
+                            val key = querySnapshot.key.toString()
+                            databaseReference.child("code").child(key).removeValue()
+
+                            val layVerifyCode: ConstraintLayout = findViewById(R.id.layVerifyCode)
+                            val layMaps: ConstraintLayout = findViewById(R.id.layMapa)
+
+                            layMaps.visibility = View.VISIBLE
+                            layVerifyCode.visibility = View.GONE
+
+                            EncerraDialog()
+
+                        }
+
+                    } else {
+                        showToast("Este código não existe.")
+                        EncerraDialog()
+                    }
+
+
+                }
+
+                override fun onCancelled(databaseError: DatabaseError) {
+                    // Getting Post failed, log a message
+                    showToast("Este código não existe.")
+                    EncerraDialog()
+                    // ...
+                }
+            })
 
     }
 
@@ -230,8 +431,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                         findPlacesNerby(location.latitude, location.longitude)
                         findNewPlacesAsUserMoves(location.latitude, location.longitude)
 
+                    } else {
+
+                        findPlacesNerby(location.latitude, location.longitude)
+                        findNewPlacesAsUserMoves(location.latitude, location.longitude)
                     }
                 } else {
+                  
                     //para aparelhos antigos não estava encontrando a localização
                     val toast = Toast.makeText(
                         this@MapsActivity,
@@ -252,12 +458,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
     //procedimentos para colocar o user online e offline
     //define status do user como online ou offline
     fun updateUserStatus(state: String, img: String){
-        
-        Log.d("teste", "chegou em update")
 
         if (this@MapsActivity::lastLocation.isInitialized) {
-
-            Log.d("teste", "lastlocation ja havi sido inicializada")
 
             if (ActivityCompat.checkSelfPermission(
                     this,
@@ -288,13 +490,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                     val long = lastLocation.longitude
                     val statusUpDateRef = databaseReference.child("userOnline")
 
-                    Log.d("teste", "lastlocation ja havi sido inicializada")
                     if (state.equals("online")) {
 
                         //coloca o user online
                         statusUpDateRef.child(userBd).child("latlong").setValue(lat + long)
                         statusUpDateRef.child(userBd).child("state").setValue(state)
-                        //statusUpDateRef.child(userBd).child("img").setValue(img)
+                        statusUpDateRef.child(userBd).child("img").setValue(img)
                         statusUpDateRef.child(userBd).child("lat").setValue(lat)
                         statusUpDateRef.child(userBd).child("long").setValue(long)
 
@@ -351,6 +552,63 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             }
         })
     }
+
+
+
+
+
+
+
+
+
+
+
+    fun generateCode(){
+
+        val layMaps: ConstraintLayout = findViewById(R.id.layMapa)
+        val layGenerateCode: ConstraintLayout = findViewById(R.id.layGenerateCode)
+
+        layMaps.visibility = View.GONE
+        layGenerateCode.visibility = View.VISIBLE
+
+        val btnGerarCodigo: Button = findViewById(R.id.generateCode_btnGerar)
+        val etCodigo: EditText = findViewById(R.id.generateCode_etCode)
+
+        val btnFechar: Button = findViewById(R.id.generateCode_btnFechar)
+        btnFechar.setOnClickListener {
+            layMaps.visibility = View.VISIBLE
+            layGenerateCode.visibility = View.GONE
+        }
+
+        btnGerarCodigo.setOnClickListener {
+
+            if (userMail.equals("semLogin")){
+                showToast("Você precisa fazer login para isso")
+            } else {
+                val code1 = rand(0, 9)
+                val code2 = rand(0, 9)
+                val code3 = rand(0, 9)
+                val code4 = rand(0, 9)
+                val code5 = rand(0, 9)
+
+                val codeFinal = (code1.toString()+code2.toString()+code3.toString()+code4.toString()+code5.toString()).toString()
+                val newCad: DatabaseReference = databaseReference.child("code").child("code").push()
+                newCad.child("code").setValue(codeFinal)
+                newCad.child("fiador").setValue(userBd)
+
+                showToast("Codigo criado")
+                etCodigo.setText(codeFinal)
+            }
+        }
+    }
+
+    fun rand(start: Int, end: Int): Int {
+        require(start <= end) { "Illegal Argument" }
+        return (start..end).random()
+    }
+
+
+
 
 
     //procura usuarios proximos online
@@ -412,55 +670,87 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
         val latLng = LatLng(lat, long)
 
-        val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("trucker!?!"+bdTrucker+"!?!"+latLng))
-        arrayTruckersNerby.add(mark1)
+        //val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("trucker!?!"+bdTrucker+"!?!"+img+"!?!"+latLng))
+        //arrayTruckersNerby.add(mark1)
 
-        mark1.tag=0
+        //mark1.tag=0
 
-        mMap.setOnMarkerClickListener(this)
+        //mMap.setOnMarkerClickListener(this)
 
-        /*
         var img2 = "nao"
-        if (img.equals("nao")){
-            img2 = "https://firebasestorage.googleapis.com/v0/b/farejadorapp.appspot.com/o/imgs_sistema%2Fimgusernoimg.png?alt=media&token=8a119c04-3295-4c5a-8071-dde1fe7849ea"
+        var bitmapFinal : Bitmap?
+
+        //pega o tamanho da tela para ajustar a qualquer celular na mesma proporção
+        val display = windowManager.defaultDisplay
+        val size = Point()
+        display.getSize(size)
+        val width: Int = size.x
+        val height: Int = size.y
+
+        //aqui é o tamanho total da imagem do user. Alterar aqui se quiser aumentar ou diminuir
+        val withPercent  = ((12*width)/100).toInt()
+        val heigthPercent : Int = ((7*height)/100).toInt()
+
+
+
+        if (img.equals("nao")){  //se nao tem foto exibe somente o pin
+            //img2 = "https://firebasestorage.googleapis.com/v0/b/store-2fa27.appspot.com/o/avatar.jpg?alt=media&token=7cc4587a-c99f-4017-b14b-09ecf7910729"
+
+            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("trucker!?!"+bdTrucker+"!?!"+img+"!?!"+latLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.placeholdersmall)))
+            arrayTruckersNerby.add(mark1)
+
+            mark1.tag=0
+
+            mMap.setOnMarkerClickListener(this)
+
+
         } else {
+
             img2 = img
+
+            Glide.with(this)
+                .asBitmap()
+                .load(img2)
+                .apply(RequestOptions().override(withPercent, heigthPercent))
+                .apply(RequestOptions.circleCropTransform())
+                .into(object : CustomTarget<Bitmap>() {
+                    override fun onResourceReady(
+                        resource: Bitmap,
+                        transition: Transition<in Bitmap>?
+                    ) {
+
+                        val bit = BitmapFactory.decodeResource(
+                            this@MapsActivity.getResources(),
+                            R.drawable.placeholder
+                        )
+
+                        bitmapFinal = createUserBitmapFinalJustRound(
+                            resource,
+                            bit
+                        )  //here we will insert the bitmap we got with the link in a placehold with white border.
+
+                        val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("trucker!?!"+bdTrucker+"!?!"+img2+"!?!"+latLng)
+                                .icon(
+                                    BitmapDescriptorFactory.fromBitmap(bitmapFinal)
+                                )
+                        )
+                        arrayTruckersNerby.add(mark1)
+
+                        mark1.tag = 0
+
+                        mMap.setOnMarkerClickListener(this@MapsActivity)
+
+                    }
+
+                    override fun onLoadCleared(placeholder: Drawable?) {
+                        // this is called when imageView is cleared on lifecycle call or for
+                        // some other reason.
+                        // if you are referencing the bitmap somewhere else too other than this imageView
+                        // clear it here as you can no longer have the bitmap
+                    }
+                })
+
         }
-
-        Glide.with(this)
-            .asBitmap()
-            .load(img2)
-            .apply(RequestOptions().override(withPercent, heigthPercent))
-            .apply(RequestOptions.circleCropTransform())
-            .into(object : CustomTarget<Bitmap>(){
-                override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
-
-                    val bit = BitmapFactory.decodeResource(
-                        this@MapsActivity.getResources(),
-                        R.drawable.placeholder
-                    )
-
-                    bitmapFinal = createUserBitmapFinalJustRound(resource, bit)  //here we will insert the bitmap we got with the link in a placehold with white border.
-
-                    val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("petFriend!?!"+BdPetFriend+"!?!"+img+"!?!"+latLng).icon(
-                        BitmapDescriptorFactory.fromBitmap(bitmapFinal)))
-                    arrayPetFriendMarker.add(mark1)
-
-                    mark1.tag=0
-
-                    mMap.setOnMarkerClickListener (this@MapsActivity)
-
-                }
-                override fun onLoadCleared(placeholder: Drawable?) {
-                    // this is called when imageView is cleared on lifecycle call or for
-                    // some other reason.
-                    // if you are referencing the bitmap somewhere else too other than this imageView
-                    // clear it here as you can no longer have the bitmap
-                }
-            })
-
-
-         */
 
         //aqui esconde ou mostra os usuarios
         //OBS: SE DER ERRO QUANDO TIVER MAIS MARKERS OLHAR NO METODO GET MARK. PODE SER QUE TENHA QUE MUDAR O CODIGO LA DENTRO, POIS ESTA .get(0) e nao get(position)
@@ -523,9 +813,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                                 val nota = querySnapshot.child("nota").value.toString()
                                 val tipo = querySnapshot.child("tipo").value.toString()
                                 val nome = querySnapshot.child("nome").value.toString()
+                                val avaliacoes = querySnapshot.child("avaliacoes").value.toString()
 
                                 //coloca o petFriend no mapa
-                                placePlacesInMap(values, latFriend.toDouble(), longFriend.toDouble(), custo, nota, tipo, nome)
+                                placePlacesInMap(values, latFriend.toDouble(), longFriend.toDouble(), custo, nota, tipo, nome, avaliacoes)
 
                             }
 
@@ -545,15 +836,65 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
     }
 
-    fun placePlacesInMap(bd: String, lat: Double, long: Double, custo: String, nota: String, tipo: String, nome: String){
+    fun placePlacesInMap(bd: String, lat: Double, long: Double, custo: String, nota: String, tipo: String, nome: String, avaliacoes: String){
 
         val latLng = LatLng(lat, long)
 
-        if (tipo.equals("restaurante")){
-            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo+"!?!"+nome).icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurante)))
-            arrayTruckersNerby.add(mark1)
+        if (tipo.equals("Restaurante")){
+            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo+"!?!"+nome+"!?!"+avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurante)))
+            arrayPlacesNerby.add(mark1)
             mark1.tag=0
             mMap.setOnMarkerClickListener(this)
+
+        } else if (tipo.equals("Borracharia")){
+
+            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo+"!?!"+nome+"!?!"+avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurante)))
+            arrayPlacesNerby.add(mark1)
+            mark1.tag=0
+            mMap.setOnMarkerClickListener(this)
+
+        } else if (tipo.equals("Espaço público")){
+
+            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo+"!?!"+nome+"!?!"+avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurante)))
+            arrayPlacesNerby.add(mark1)
+            mark1.tag=0
+            mMap.setOnMarkerClickListener(this)
+
+        } else if (tipo.equals("Hotel")){
+
+            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo+"!?!"+nome+"!?!"+avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurante)))
+            arrayPlacesNerby.add(mark1)
+            mark1.tag=0
+            mMap.setOnMarkerClickListener(this)
+
+        } else if (tipo.equals("Oficina")){
+
+            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo+"!?!"+nome+"!?!"+avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurante)))
+            arrayPlacesNerby.add(mark1)
+            mark1.tag=0
+            mMap.setOnMarkerClickListener(this)
+
+        } else if (tipo.equals("Parada CCR")){
+
+            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo+"!?!"+nome+"!?!"+avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurante)))
+            arrayPlacesNerby.add(mark1)
+            mark1.tag=0
+            mMap.setOnMarkerClickListener(this)
+
+        } else if (tipo.equals("Posto gasolina")){
+
+            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo+"!?!"+nome+"!?!"+avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurante)))
+            arrayPlacesNerby.add(mark1)
+            mark1.tag=0
+            mMap.setOnMarkerClickListener(this)
+
+        } else if (tipo.equals("Posto de saúde")){
+
+            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo+"!?!"+nome+"!?!"+avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurante)))
+            arrayPlacesNerby.add(mark1)
+            mark1.tag=0
+            mMap.setOnMarkerClickListener(this)
+
         }
 
 
@@ -663,7 +1004,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                 val tokens = StringTokenizer(bd.toString(), "!?!")
                 val descart = tokens.nextToken() // this will contain "trucker"
                 val bdDoUser = tokens.nextToken() // this will contain "bd"
-                //val img = tokens.nextToken()
+                val img = tokens.nextToken()
 
                 //abrir popup
                 openPopUp("Chamar este caminhoneiro?", "Você deseja abrir o whatsapp?", true, "Sim, abrir", "Não", "trucker", bdDoUser)
@@ -678,8 +1019,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                 val nota = tokens.nextToken() // this will contain "nota"
                 val tipo = tokens.nextToken() // this will contain "tipo"
                 val nome = tokens.nextToken() // this will contain "nome"
+                val avaliacoes = tokens.nextToken() // this will contain "avaliacoes"
 
-                openPopUpPlaces(nome, "texto aqui", true, "Avaliar", "Fechar", "places", bdDoPlace, custo, nota.toDouble(), tipo)
+                openPopUpPlaces(nome, "texto aqui", true, "Avaliar", "Fechar", "places", bdDoPlace, custo, nota.toDouble(), tipo, avaliacoes)
                 //("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo)
 
             }
@@ -804,7 +1146,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
     }
 
-    fun openPopUpPlaces (titulo: String, texto:String, exibeBtnOpcoes:Boolean, btnSim: String, btnNao: String, call: String, bd: String, custo: String, nota: Double, tipo: String) {
+    //aqui estão os clickes e os processos de salvar no banco de dados a avaliaçao
+    fun openPopUpPlaces (titulo: String, texto:String, exibeBtnOpcoes:Boolean, btnSim: String, btnNao: String, call: String, bd: String, custo: String, nota: Double, tipo: String, avaliacoes: String) {
         //exibeBtnOpcoes - se for não, vai exibir apenas o botão com OK, sem opção. Senão, exibe dois botões e pega os textos deles de btnSim e btnNao
         //obs: titulo é o também o nome do lugar
 
@@ -910,77 +1253,138 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         }
          */
 
-        showCosts(custo, false)
+
+        //agora ajusta a nota e o custo
+        val dolar1 = view.findViewById<ImageView>(R.id.placesPopup_custo_dolar1)
+        val dolar2: ImageView = view.findViewById(R.id.placesPopup_custo_dolar2)
+        val dolar3: ImageView = view.findViewById(R.id.placesPopup_custo_dolar3)
+        val dolar4: ImageView = view.findViewById(R.id.placesPopup_custo_dolar4)
+        val dolar5: ImageView = view.findViewById(R.id.placesPopup_custo_dolar5)
+        val txtResumo: TextView = view.findViewById(R.id.placesPopup_custo)
 
 
-        //agora ajusta a nota
-        if (nota == 5.0){
-            star1.setImageResource(R.drawable.ic_star_gold)
-            star2.setImageResource(R.drawable.ic_star_gold)
-            star3.setImageResource(R.drawable.ic_star_gold)
-            star4.setImageResource(R.drawable.ic_star_gold)
-            star5.setImageResource(R.drawable.ic_star_gold)
-        } else if (nota > 4.0){
-            star1.setImageResource(R.drawable.ic_star_gold)
-            star2.setImageResource(R.drawable.ic_star_gold)
-            star3.setImageResource(R.drawable.ic_star_gold)
-            star4.setImageResource(R.drawable.ic_star_gold)
-            star5.setImageResource(R.drawable.ic_star_half)
-        } else if (nota == 4.0){
-            star1.setImageResource(R.drawable.ic_star_gold)
-            star2.setImageResource(R.drawable.ic_star_gold)
-            star3.setImageResource(R.drawable.ic_star_gold)
-            star4.setImageResource(R.drawable.ic_star_gold)
-            star5.setImageResource(R.drawable.ic_star_border)
-        } else if (nota > 3.0){
-            star1.setImageResource(R.drawable.ic_star_gold)
-            star2.setImageResource(R.drawable.ic_star_gold)
-            star3.setImageResource(R.drawable.ic_star_gold)
-            star4.setImageResource(R.drawable.ic_star_half)
-            star5.setImageResource(R.drawable.ic_star_half)
-        } else if (nota == 3.0){
-            star1.setImageResource(R.drawable.ic_star_gold)
-            star2.setImageResource(R.drawable.ic_star_gold)
-            star3.setImageResource(R.drawable.ic_star_gold)
-            star4.setImageResource(R.drawable.ic_star_border)
-            star5.setImageResource(R.drawable.ic_star_border)
-        } else if (nota > 2.0){
-            star1.setImageResource(R.drawable.ic_star_gold)
-            star2.setImageResource(R.drawable.ic_star_gold)
-            star3.setImageResource(R.drawable.ic_star_half)
-            star4.setImageResource(R.drawable.ic_star_half)
-            star5.setImageResource(R.drawable.ic_star_half)
-        } else if (nota == 2.0){
-            star1.setImageResource(R.drawable.ic_star_gold)
-            star2.setImageResource(R.drawable.ic_star_gold)
-            star3.setImageResource(R.drawable.ic_star_border)
-            star4.setImageResource(R.drawable.ic_star_border)
-            star5.setImageResource(R.drawable.ic_star_border)
-        } else if (nota > 1.0){
-            star1.setImageResource(R.drawable.ic_star_gold)
-            star2.setImageResource(R.drawable.ic_star_half)
-            star3.setImageResource(R.drawable.ic_star_half)
-            star4.setImageResource(R.drawable.ic_star_half)
-            star5.setImageResource(R.drawable.ic_star_half)
-        } else if (nota == 1.0){
-            star1.setImageResource(R.drawable.ic_star_gold)
-            star2.setImageResource(R.drawable.ic_star_border)
-            star3.setImageResource(R.drawable.ic_star_border)
-            star4.setImageResource(R.drawable.ic_star_border)
-            star5.setImageResource(R.drawable.ic_star_border)
-        } else if (nota > 0.0){
-            star1.setImageResource(R.drawable.ic_star_half)
-            star2.setImageResource(R.drawable.ic_star_half)
-            star3.setImageResource(R.drawable.ic_star_half)
-            star4.setImageResource(R.drawable.ic_star_half)
-            star5.setImageResource(R.drawable.ic_star_half)
-        } else if (nota == 0.0){
+        if (call.equals("avaliar")){
             star1.setImageResource(R.drawable.ic_star_border)
             star2.setImageResource(R.drawable.ic_star_border)
             star3.setImageResource(R.drawable.ic_star_border)
             star4.setImageResource(R.drawable.ic_star_border)
             star5.setImageResource(R.drawable.ic_star_border)
+
+            //os listeners estão no final
+            dolar1.setImageResource(R.drawable.dollarcinza)
+            dolar2.setImageResource(R.drawable.dollarcinza)
+            dolar3.setImageResource(R.drawable.dollarcinza)
+            dolar4.setImageResource(R.drawable.dollarcinza)
+            dolar5.setImageResource(R.drawable.dollarcinza)
+
+        } else {
+            if (nota == 5.0){
+                star1.setImageResource(R.drawable.ic_star_gold)
+                star2.setImageResource(R.drawable.ic_star_gold)
+                star3.setImageResource(R.drawable.ic_star_gold)
+                star4.setImageResource(R.drawable.ic_star_gold)
+                star5.setImageResource(R.drawable.ic_star_gold)
+            } else if (nota > 4.0){
+                star1.setImageResource(R.drawable.ic_star_gold)
+                star2.setImageResource(R.drawable.ic_star_gold)
+                star3.setImageResource(R.drawable.ic_star_gold)
+                star4.setImageResource(R.drawable.ic_star_gold)
+                star5.setImageResource(R.drawable.ic_star_half)
+            } else if (nota == 4.0){
+                star1.setImageResource(R.drawable.ic_star_gold)
+                star2.setImageResource(R.drawable.ic_star_gold)
+                star3.setImageResource(R.drawable.ic_star_gold)
+                star4.setImageResource(R.drawable.ic_star_gold)
+                star5.setImageResource(R.drawable.ic_star_border)
+            } else if (nota > 3.0){
+                star1.setImageResource(R.drawable.ic_star_gold)
+                star2.setImageResource(R.drawable.ic_star_gold)
+                star3.setImageResource(R.drawable.ic_star_gold)
+                star4.setImageResource(R.drawable.ic_star_half)
+                star5.setImageResource(R.drawable.ic_star_half)
+            } else if (nota == 3.0){
+                star1.setImageResource(R.drawable.ic_star_gold)
+                star2.setImageResource(R.drawable.ic_star_gold)
+                star3.setImageResource(R.drawable.ic_star_gold)
+                star4.setImageResource(R.drawable.ic_star_border)
+                star5.setImageResource(R.drawable.ic_star_border)
+            } else if (nota > 2.0){
+                star1.setImageResource(R.drawable.ic_star_gold)
+                star2.setImageResource(R.drawable.ic_star_gold)
+                star3.setImageResource(R.drawable.ic_star_half)
+                star4.setImageResource(R.drawable.ic_star_half)
+                star5.setImageResource(R.drawable.ic_star_half)
+            } else if (nota == 2.0){
+                star1.setImageResource(R.drawable.ic_star_gold)
+                star2.setImageResource(R.drawable.ic_star_gold)
+                star3.setImageResource(R.drawable.ic_star_border)
+                star4.setImageResource(R.drawable.ic_star_border)
+                star5.setImageResource(R.drawable.ic_star_border)
+            } else if (nota > 1.0){
+                star1.setImageResource(R.drawable.ic_star_gold)
+                star2.setImageResource(R.drawable.ic_star_half)
+                star3.setImageResource(R.drawable.ic_star_half)
+                star4.setImageResource(R.drawable.ic_star_half)
+                star5.setImageResource(R.drawable.ic_star_half)
+            } else if (nota == 1.0){
+                star1.setImageResource(R.drawable.ic_star_gold)
+                star2.setImageResource(R.drawable.ic_star_border)
+                star3.setImageResource(R.drawable.ic_star_border)
+                star4.setImageResource(R.drawable.ic_star_border)
+                star5.setImageResource(R.drawable.ic_star_border)
+            } else if (nota > 0.0){
+                star1.setImageResource(R.drawable.ic_star_half)
+                star2.setImageResource(R.drawable.ic_star_half)
+                star3.setImageResource(R.drawable.ic_star_half)
+                star4.setImageResource(R.drawable.ic_star_half)
+                star5.setImageResource(R.drawable.ic_star_half)
+            } else if (nota == 0.0){
+                star1.setImageResource(R.drawable.ic_star_border)
+                star2.setImageResource(R.drawable.ic_star_border)
+                star3.setImageResource(R.drawable.ic_star_border)
+                star4.setImageResource(R.drawable.ic_star_border)
+                star5.setImageResource(R.drawable.ic_star_border)
+            }
+
+
+            var str:String = custo.replace("R$", "")
+            str = str.replace(",", "").trim()
+            str = str.replace(".", "").trim()
+            val valorFormatado = str.toInt()
+
+
+            if (valorFormatado > 400) {
+                dolar1.setImageResource(R.drawable.dollar)
+                dolar2.setImageResource(R.drawable.dollar)
+                dolar3.setImageResource(R.drawable.dollar)
+                dolar4.setImageResource(R.drawable.dollar)
+                dolar5.setImageResource(R.drawable.dollar)
+
+            } else if (valorFormatado > 200) {
+                dolar1.setImageResource(R.drawable.dollar)
+                dolar2.setImageResource(R.drawable.dollar)
+                dolar3.setImageResource(R.drawable.dollar)
+                dolar4.setImageResource(R.drawable.dollar)
+            } else if (valorFormatado > 100) {
+                dolar1.setImageResource(R.drawable.dollar)
+                dolar2.setImageResource(R.drawable.dollar)
+                dolar3.setImageResource(R.drawable.dollar)
+            } else if (valorFormatado > 50) {
+                dolar1.setImageResource(R.drawable.dollar)
+                dolar2.setImageResource(R.drawable.dollar)
+            } else {
+                dolar1.setImageResource(R.drawable.dollar)
+            }
+
+            if (custo.equals("R$0,00")){
+                txtResumo.setText("Este lugar nunca foi avaliado.")
+            } else {
+                txtResumo.setText("Custo médio deste lugar é "+currencyTranslation(valorFormatado))
+            }
+
+
         }
+
 
 
         // Set a dismiss listener for popup window
@@ -1004,62 +1408,157 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         //aqui colocamos os ifs com cada call de cada vez que a popup for chamada
         if (call.equals("places")) {
             //é a abertura normal, exibindo o lugar, a nota e o custo
-            buttonPopupS.setOnClickListener {
-                //ao clicar em avaliar chama este mesmo método desta vez para avaliar.
-                openPopUpPlaces("Avaliar "+titulo, "Você está avaliando", true, "Avaliar", "Cancelar", "avaliar", bd, custo, nota, tipo)
+            if (!userMail.equals("semLogin")){
+                buttonPopupS.setOnClickListener {
+                    //ao clicar em avaliar chama este mesmo método desta vez para avaliar.
+                    openPopUpPlaces("Avaliar "+titulo, "Você está avaliando", true, "Avaliar", "Cancelar", "avaliar", bd, custo, nota, tipo, avaliacoes)
+                    popupWindow.dismiss()
+                }
+            } else {
+                showToast("Você precisa estar logado para avaliar.")
             }
+
 
         } else if (call.equals("avaliar")){
 
-            buttonPopupS.setOnClickListener {
+            var notaInformada = 0
+            var custoInformado = 0
+            //a avaliacao das estrelas será feita aqui mesmo pra aproveitar que os widgets ja foram carregados em memória
+            star1.setOnClickListener {
+                star1.setImageResource(R.drawable.ic_star_gold)
+                star2.setImageResource(R.drawable.ic_star_border)
+                star3.setImageResource(R.drawable.ic_star_border)
+                star4.setImageResource(R.drawable.ic_star_border)
+                star5.setImageResource(R.drawable.ic_star_border)
+                notaInformada=1
+            }
+            star2.setOnClickListener {
+                star1.setImageResource(R.drawable.ic_star_gold)
+                star2.setImageResource(R.drawable.ic_star_gold)
+                star3.setImageResource(R.drawable.ic_star_border)
+                star4.setImageResource(R.drawable.ic_star_border)
+                star5.setImageResource(R.drawable.ic_star_border)
+                notaInformada=2
+            }
+            star3.setOnClickListener {
+                star1.setImageResource(R.drawable.ic_star_gold)
+                star2.setImageResource(R.drawable.ic_star_gold)
+                star3.setImageResource(R.drawable.ic_star_gold)
+                star4.setImageResource(R.drawable.ic_star_border)
+                star5.setImageResource(R.drawable.ic_star_border)
+                notaInformada=3
+            }
+            star4.setOnClickListener {
+                star1.setImageResource(R.drawable.ic_star_gold)
+                star2.setImageResource(R.drawable.ic_star_gold)
+                star3.setImageResource(R.drawable.ic_star_gold)
+                star4.setImageResource(R.drawable.ic_star_gold)
+                star5.setImageResource(R.drawable.ic_star_border)
+                notaInformada=4
+            }
+            star5.setOnClickListener {
+                star1.setImageResource(R.drawable.ic_star_gold)
+                star2.setImageResource(R.drawable.ic_star_gold)
+                star3.setImageResource(R.drawable.ic_star_gold)
+                star4.setImageResource(R.drawable.ic_star_gold)
+                star5.setImageResource(R.drawable.ic_star_gold)
+                notaInformada=5
+            }
+
+            //listeners dos clicks
+            dolar1.setOnClickListener {
+                dolar1.setImageResource(R.drawable.dollar)
+                dolar2.setImageResource(R.drawable.dollarcinza)
+                dolar3.setImageResource(R.drawable.dollarcinza)
+                dolar4.setImageResource(R.drawable.dollarcinza)
+                dolar5.setImageResource(R.drawable.dollarcinza)
+                custoInformado=25
+
+                txtResumo.setText("Você gastou menos de R$ 50,00")
+            }
+
+            dolar2.setOnClickListener {
+                dolar1.setImageResource(R.drawable.dollar)
+                dolar2.setImageResource(R.drawable.dollar)
+                dolar3.setImageResource(R.drawable.dollarcinza)
+                dolar4.setImageResource(R.drawable.dollarcinza)
+                dolar5.setImageResource(R.drawable.dollarcinza)
+
+                txtResumo.setText("Você gastou até R$ 50,00")
+                custoInformado=50
+            }
+
+            dolar3.setOnClickListener {
+                dolar1.setImageResource(R.drawable.dollar)
+                dolar2.setImageResource(R.drawable.dollar)
+                dolar3.setImageResource(R.drawable.dollar)
+                dolar4.setImageResource(R.drawable.dollarcinza)
+                dolar5.setImageResource(R.drawable.dollarcinza)
+
+                txtResumo.setText("Você gastou até R$ 100,00")
+                custoInformado=100
+            }
+
+            dolar4.setOnClickListener {
+                dolar1.setImageResource(R.drawable.dollar)
+                dolar2.setImageResource(R.drawable.dollar)
+                dolar3.setImageResource(R.drawable.dollar)
+                dolar4.setImageResource(R.drawable.dollar)
+                dolar5.setImageResource(R.drawable.dollarcinza)
+
+                txtResumo.setText("Você gastou até R$ 400,00")
+                custoInformado=250
+            }
+
+
+            dolar5.setOnClickListener {
+                dolar1.setImageResource(R.drawable.dollar)
+                dolar2.setImageResource(R.drawable.dollar)
+                dolar3.setImageResource(R.drawable.dollar)
+                dolar4.setImageResource(R.drawable.dollar)
+                dolar5.setImageResource(R.drawable.dollar)
+
+                txtResumo.setText("Você gastou R$ 400,00 ou mais")
+                custoInformado=400
 
             }
+
+            buttonPopupS.setOnClickListener {
+                //avaliar
+                if (notaInformada==0){
+                    showToast("Avalie a qualidade do lugar. Isso ajuda seus amigos.")
+                } else if (custoInformado==0){
+                    showToast("Avalie o custo. Isso ajuda seus amigos.")
+                } else {
+
+
+                    var str:String = custo.replace("R$", "")
+                    str = str.replace(",", "").trim()
+                    str = str.replace(".", "").trim()
+                    val valorFormatado = str.toInt()
+
+                    val novaNota = (notaInformada + nota) / avaliacoes.toInt()
+                    var novoCusto = 0
+                    if (avaliacoes.toInt()==0){
+                        novoCusto = custoInformado
+                    } else {
+                        novoCusto  = (custoInformado + valorFormatado) / avaliacoes.toInt()
+                    }
+
+                    databaseReference.child("places").child(bd).child("nota").setValue(novaNota.toInt())
+                    databaseReference.child("places").child(bd).child("custo").setValue(currencyTranslation(novoCusto))
+                    databaseReference.child("places").child(bd).child("avaliacoes").setValue(avaliacoes.toInt()+1)
+                    showToast("Você avaliou este lugar. Agora seus amigos poderão saber o que você achou.")
+                    popupWindow.dismiss()
+                }
+
+            }
+
             //fun openPopUpPlaces (titulo: String, texto:String, exibeBtnOpcoes:Boolean, btnSim: String, btnNao: String, call: String, bd: String, custo: String, nota: Double, tipo: String) {
         }
 
     }
 
-    fun showCosts(custo: String, avaliar: Boolean){
-
-        val dolar1: ImageView = findViewById(R.id.placesPopup_custo_dolar1)
-        val dolar2: ImageView = findViewById(R.id.placesPopup_custo_dolar2)
-        val dolar3: ImageView = findViewById(R.id.placesPopup_custo_dolar3)
-        val dolar4: ImageView = findViewById(R.id.placesPopup_custo_dolar4)
-        val dolar5: ImageView = findViewById(R.id.placesPopup_custo_dolar5)
-        val txtResumo: TextView = findViewById(R.id.placesPopup_custo)
-
-        var str:String = custo.replace("R$", "")
-        str = str.replace(",", "").trim()
-        str = str.replace(".", "").trim()
-
-        val valorFormatado = str.toInt()
-
-        if (valorFormatado > 400){
-            dolar1.setImageResource(R.drawable.dollar)
-            dolar2.setImageResource(R.drawable.dollar)
-            dolar3.setImageResource(R.drawable.dollar)
-            dolar4.setImageResource(R.drawable.dollar)
-            dolar5.setImageResource(R.drawable.dollar)
-        } else if (valorFormatado > 200){
-            dolar1.setImageResource(R.drawable.dollar)
-            dolar2.setImageResource(R.drawable.dollar)
-            dolar3.setImageResource(R.drawable.dollar)
-            dolar4.setImageResource(R.drawable.dollar)
-        } else if (valorFormatado > 100){
-            dolar1.setImageResource(R.drawable.dollar)
-            dolar2.setImageResource(R.drawable.dollar)
-            dolar3.setImageResource(R.drawable.dollar)
-        } else if (valorFormatado > 50){
-            dolar1.setImageResource(R.drawable.dollar)
-            dolar2.setImageResource(R.drawable.dollar)
-        } else {
-            dolar1.setImageResource(R.drawable.dollar)
-        }
-
-        txtResumo.setText("Custo médio relatado é "+custo)
-
-
-    }
 
     //corrige o valor informado pelo seekBar em dinheiro
     fun currencyTranslation(valorOriginal: Int): String{
@@ -1154,6 +1653,285 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         return valorString
 
     }
+
+
+
+
+
+
+
+
+
+
+
+
+    //
+    fun addNewPlace(){
+
+        val layMaps: ConstraintLayout = findViewById(R.id.layMapa)
+        val layCad: ConstraintLayout = findViewById(R.id.layCadPlace)
+        layMaps.visibility = View.GONE
+        layCad.visibility = View.VISIBLE
+
+
+        val btnCad: Button = findViewById(R.id.cadPlace_btnCad)
+
+
+        val etEndereco: EditText = findViewById(R.id.cadPlace_etEndereco)
+        val btnDigitarEndereco: Button = findViewById(R.id.cadPlace_btnNaoEstaNoLugar)
+        btnDigitarEndereco.setOnClickListener {
+            etEndereco.visibility = View.VISIBLE
+            etEndereco.hint = "Digite o endereço aqui"
+        }
+
+        val btnPegarEndereco: Button = findViewById(R.id.cadPlace_btnEstaNoLugar)
+        btnPegarEndereco.setOnClickListener {
+            etEndereco.visibility = View.VISIBLE
+            val latLong : LatLng = LatLng(lastLocation.latitude, lastLocation.longitude)
+            etEndereco.setText(getAddress(latLong))
+        }
+
+
+
+
+        val spinner: Spinner = findViewById(R.id.cadPlace_spinner)
+        var list_of_items = arrayOf(
+            "Selecione o tipo",
+            "Borracharia",
+            "Espaço público",
+            "Hotel",
+            "Oficina",
+            "Parada CCR",
+            "Posto gasolina",
+            "Posto de saúde",
+            "Restaurante"
+        )
+
+        var tipo = "Selecione o tipo"
+
+        //Adapter for spinner
+        spinner.adapter =
+            ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, list_of_items)
+
+        //item selected listener for spinner
+        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onNothingSelected(p0: AdapterView<*>?) {
+
+            }
+
+            override fun onItemSelected(
+                parent: AdapterView<*>?,
+                view: View?,
+                position: Int,
+                id: Long
+            ) {
+                tipo = list_of_items[position]
+
+            }
+        }
+
+
+
+        btnCad.setOnClickListener {
+            val etNome: EditText = findViewById(R.id.cadPlace_etNome)
+
+            if (etNome.text.isEmpty()){
+                etNome.requestFocus()
+                etNome.setError("Informe o nome do lugar")
+            } else if (etEndereco.text.isEmpty()){
+                etEndereco.requestFocus()
+                etEndereco.setError("Informe o endereço")
+            } else if (tipo.equals("Selecione o tipo")){
+                showToast("Informe o tipo de estabelecimento")
+            } else {
+
+                ChamaDialog()
+                val newCad: String = databaseReference.child("places").push().key.toString()
+                getLatLong(etEndereco.text.toString(), newCad) //aqui vai salvar as informações de localização neste mesmo bd
+                databaseReference.child("places").child(newCad).child("avaliacoes").setValue(0)
+                databaseReference.child("places").child(newCad).child("custo").setValue("R$0,00")
+                databaseReference.child("places").child(newCad).child("nome").setValue(etNome.text.toString())
+                databaseReference.child("places").child(newCad).child("nota").setValue(0)
+                databaseReference.child("places").child(newCad).child("tipo").setValue(tipo)
+
+                layCad.visibility = View.GONE
+                layMaps.visibility = View.VISIBLE
+                EncerraDialog()
+                showToast("Pronto! O lugar foi adicionado")
+                findPlacesNerby(lastLocation.latitude, lastLocation.longitude)
+
+            }
+
+
+        }
+
+
+    }
+
+
+
+
+
+
+
+
+
+    //métodos de busca de enderço a partir de Latitude e Longitude ou o contrário
+    //private fun getAddress(latLng: LatLng): String {
+    private fun getAddress(latLng: LatLng): String {
+        // 1
+        ChamaDialog()
+        val geocoder = Geocoder(this)
+        val addresses: List<Address>?
+        //val address: Address?
+        var addressText = ""
+
+        val enderecoUser: MutableList<String> = ArrayList()
+
+        try {
+            // 2
+            addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1)
+            // 3
+            if (null != addresses && !addresses.isEmpty()) {
+
+
+                if (addresses[0].countryName == null){
+
+                } else {
+                    enderecoUser.add(addresses[0].countryName)
+                }
+
+                if (addresses[0].postalCode == null){
+
+                } else {
+                    enderecoUser.add(addresses[0].postalCode)
+                }
+
+                if (addresses[0].adminArea == null){ //estado
+
+                } else {
+                    enderecoUser.add(addresses[0].adminArea)
+                }
+
+                //este é diferente pq as vezes o estado vem em subadminarea e as vezes em locality. Entao ele testa
+                if (addresses[0].locality == null) {
+                    //mUserCidade = addresses[0].subAdminArea
+                    enderecoUser.add(addresses[0].subAdminArea)
+                } else {
+                    //mUserCidade = addresses[0].locality
+                    enderecoUser.add(addresses[0].locality)
+                }
+
+                if (addresses[0].subLocality == null){
+
+                } else{
+                    enderecoUser.add(addresses[0].subLocality)
+                }
+
+                if (addresses[0].subThoroughfare == null){
+
+                } else {
+                    enderecoUser.add(addresses[0].subThoroughfare)
+                }
+
+                if (addresses[0].thoroughfare == null){
+
+                } else {
+                    enderecoUser.add(addresses[0].thoroughfare)
+                }
+
+
+
+                var cont=0
+                val size = enderecoUser.size-1  //pq o tamanho conta o 0. Entãodigamos, um array de tamanho 6 vai só até 5. Ai dava erro.
+                while (cont<enderecoUser.size){
+                    addressText = addressText+" "+enderecoUser.get(size-cont).toString()
+                    cont++
+                }
+                /*
+                /*
+                array   pos 0 - cidade
+                        pos 1 - estado
+                        pos 2 - bairro
+                        pos 3 - numero Casa
+                        pos 4 - rua
+                        pos 5 - cep
+                 */
+                addressText =
+                    enderecoUser.get(4) + " nº " + enderecoUser.get(3) + ", " + enderecoUser.get(2) + ", " + enderecoUser.get(0) + " - " + enderecoUser.get(1)
+
+                 */
+            }
+        } catch (e: IOException) {
+            Log.e("MapsActivity", e.localizedMessage)
+        }
+
+        EncerraDialog()
+        return addressText
+
+    }
+
+    //pega a latitude e longitude a partir de um endereço
+    private fun getLatLong (endereco: String, bd: String){
+
+        ChamaDialog()
+        val geocoder = Geocoder(this)
+        //val addresses: List<Address>?
+        //val address: Address?
+        //var addressText = ""
+
+        //Geocoder coder = new Geocoder(this);
+        val address : List<Address>?
+        //GeoPoint p1 = null;
+
+        try {
+            address = geocoder.getFromLocationName(endereco,1)
+
+            if (address==null) {
+                Toast.makeText(this, "Não foi possível encontrar a localização ainda. Aguarde", Toast.LENGTH_SHORT).show()
+                val timer = object: CountDownTimer(40000, 1000) {
+                    override fun onTick(millisUntilFinished: Long) {}
+
+                    override fun onFinish() {
+                        getLatLong(endereco, bd)
+                    }
+                }
+                timer.start()
+            } else {
+                var location: Address = address.get(0)
+                //location.getLatitude();
+                //location.getLongitude();
+
+                databaseReference.child("places").child(bd).child("lat")
+                    .setValue(location.latitude)
+                databaseReference.child("places").child(bd).child("long")
+                    .setValue(location.longitude)
+                databaseReference.child("places").child(bd).child("latlong")
+                    .setValue(location.latitude + location.longitude)
+
+            }
+        }catch (e: IOException) {
+            Log.e("MapsActivity", e.localizedMessage)
+        }
+
+        EncerraDialog()
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1271,6 +2049,41 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
     fun showToast(message: String){
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+
+    //ajusta a imagem para o marker com imagem
+    private fun createUserBitmapFinalJustRound(bitmapImgUser: Bitmap?, bitmapPlaceHolder: Bitmap?): Bitmap? {
+
+        //vamos ajustar o fundo branco ao tamanho que colocamos na imagem do user
+        val display = windowManager.defaultDisplay
+        val size = Point()
+        display.getSize(size)
+        val width: Int = size.x
+        //val height: Int = size.y
+
+        val withPercent  = ((18*width)/100).toFloat()   //um pouco maior do que a imagem do user
+        val differenceAdjust = ((8*withPercent)/100).toFloat()
+
+        //ajusta ao tamanho que queremos
+        val newPlaceHolder = scaleDown(bitmapPlaceHolder!!, withPercent, true)
+
+        //agora colocamos a imagem do bolão ao fundo e a imagem do user a frente
+        val bmOverlay = Bitmap.createBitmap(newPlaceHolder!!.getWidth(), newPlaceHolder.getHeight(), newPlaceHolder.getConfig())
+        val canvas = Canvas(bmOverlay)
+        val customMatrix = Matrix()
+        customMatrix.setTranslate(differenceAdjust, differenceAdjust)
+        canvas.drawBitmap(newPlaceHolder!!, Matrix(), null)
+        canvas.drawBitmap(bitmapImgUser!!, customMatrix, null)
+
+        return bmOverlay
+
+    }
+
+    fun scaleDown(realImage: Bitmap, maxImageSize: Float, filter: Boolean): Bitmap? {
+        val ratio = Math.min(maxImageSize / realImage.width,maxImageSize / realImage.height)
+        val width = Math.round(ratio * realImage.width)
+        val height = Math.round(ratio * realImage.height)
+        return Bitmap.createScaledBitmap(realImage, width, height, filter)
     }
 
     fun ChamaDialog() {

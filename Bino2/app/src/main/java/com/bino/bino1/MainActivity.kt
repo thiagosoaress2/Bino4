@@ -1066,10 +1066,10 @@ class MainActivity : AppCompatActivity() {
         val userBD = newCad.key.toString()
         newCad.child("email").setValue(emailAddress)
         newCad.child("tipo").setValue("usuario")
-        newCad.child("userBD").setValue(userBD)
-        newCad.child("nota").setValue(0)
         newCad.child("avaliacoes").setValue(0)
         newCad.child("img").setValue("nao")
+        newCad.child("code").setValue("nao")
+        newCad.child("nEmergencia").setValue("nao")
     }
 
     //por fim, pegue o retorno dos métodos aqui
@@ -1120,7 +1120,6 @@ class MainActivity : AppCompatActivity() {
         }
 
     }
-
 
     fun layinicialOut(){
         val telainicial: ConstraintLayout = findViewById(R.id.layInicial)
