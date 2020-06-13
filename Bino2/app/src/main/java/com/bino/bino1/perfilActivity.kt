@@ -32,6 +32,7 @@ import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.google.firebase.storage.UploadTask
 import java.io.*
+import java.lang.ref.WeakReference
 import java.util.*
 
 class perfilActivity : AppCompatActivity() {
@@ -55,12 +56,17 @@ class perfilActivity : AppCompatActivity() {
         val nome = intent.getStringExtra("nome")
         val img = intent.getStringExtra("img")
         userBd = intent.getStringExtra("userBd")
+        val whatsapp = intent.getStringExtra("whastapp")
 
         databaseReference = FirebaseDatabase.getInstance().reference
 
         metodosIniciais()
 
         val etNemergencia: EditText = findViewById(R.id.perfil_etNemergencia)
+        val country2 = PhoneNumberFormatType.PT_BR // OR PhoneNumberFormatType.PT_BR
+        val phoneFormatter2 = PhoneNumberFormatter(WeakReference(etNemergencia), country2)
+        etNemergencia.addTextChangedListener(phoneFormatter2)
+
         if (!nEmergencia.equals("nao")){
             etNemergencia.setText(nEmergencia)
         }
@@ -73,17 +79,30 @@ class perfilActivity : AppCompatActivity() {
             Glide.with(this).load(img).into(imageView)
         }
 
+        val etNwhatsapp: EditText = findViewById(R.id.perfil_etNwhatsapp)
+        //textWatcher para formatar em máscara de telefone
+        val country = PhoneNumberFormatType.PT_BR // OR PhoneNumberFormatType.PT_BR
+        val phoneFormatter = PhoneNumberFormatter(WeakReference(etNwhatsapp), country)
+        etNwhatsapp.addTextChangedListener(phoneFormatter)
+
+        if (!whatsapp.equals("nao")){
+            etNwhatsapp.setText(whatsapp)
+        }
+
         val btnSalvar: Button = findViewById(R.id.perfil_btnSalvar)
         btnSalvar.setOnClickListener {
 
             if (!urifinal.equals("nao")){
                 databaseReference.child("usuarios").child(userBd).child("img").setValue(urifinal)
             }
-            if (!etNemergencia.text.equals(nEmergencia)){
+            if (!etNemergencia.text.equals(nEmergencia) && !etNemergencia.text.isEmpty()){
                 databaseReference.child("usuarios").child(userBd).child("nEmergencia").setValue(etNemergencia.text.toString())
             }
-            if (!etNome.text.equals(nome)){
+            if (!etNome.text.equals(nome) && !etNome.text.isEmpty()){
                 databaseReference.child("usuarios").child(userBd).child("nome").setValue(etNome.text.toString())
+            }
+            if (!etNwhatsapp.equals(whatsapp) && !etNwhatsapp.text.isEmpty()){
+                databaseReference.child("usuarios").child(userBd).child("whatsapp").setValue(etNwhatsapp.text.toString())
             }
 
             finish()
@@ -99,7 +118,7 @@ class perfilActivity : AppCompatActivity() {
 
         val btnHelpNumero: Button = findViewById(R.id.perfil_btnHelpNumero)
         btnHelpNumero.setOnClickListener {
-            openPopUp("Ajuda", "Você pode cadastrar um número de emergência para o qual o Bino envia sua localização e um pedido de ajuda em caso de emergência.", false, "n", "m")
+            openPopUp("Ajuda", "Você pode cadastrar um número de emergência para o qual o Bino envia sua localização e um pedido de ajuda em caso de emergência. É importante que este número seja um telefone com whatsapp.", false, "n", "m")
         }
 
         val btnUpload : Button = findViewById(R.id.perfil_btnUpload)

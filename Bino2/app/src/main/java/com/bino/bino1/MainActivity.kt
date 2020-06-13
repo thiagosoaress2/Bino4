@@ -1091,6 +1091,8 @@ class MainActivity : AppCompatActivity() {
         newCad.child("img").setValue("nao")
         newCad.child("code").setValue("nao")
         newCad.child("nEmergencia").setValue("nao")
+        newCad.child("nome").setValue("nao")
+        newCad.child("whatsapp").setValue("nao")
     }
 
     //por fim, pegue o retorno dos métodos aqui

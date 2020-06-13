@@ -227,6 +227,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                 intent.putExtra("nome", arrayUserInfos.get(1))
                 intent.putExtra("img", arrayUserInfos.get(2))
                 intent.putExtra("userBd", arrayUserInfos.get(3))
+                intent.putExtra("whastapp", arrayUserInfos.get(5))
 
                 startActivity(intent)
             }
@@ -262,6 +263,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                             values = querySnapshot.child("avaliacoes").value.toString()
                             arrayUserInfos.add(values)
 
+                            values = querySnapshot.child("whatsapp").value.toString()
+                            arrayUserInfos.add(values)
+
                             values = querySnapshot.child("code").value.toString()
                             if (values.equals("nao")){
                                 verificaCode()
@@ -273,6 +277,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                             pos 2 - img
                             pos 3 - bd
                             pos 4 - avaliacoes
+                            pos 5 - whatsapp
 
                              */
 
@@ -1013,7 +1018,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
                 //abrir popup
                 //openPopUp("Chamar este caminhoneiro?", "Você deseja abrir o whatsapp?", true, "Sim, abrir", "Não", "trucker", bdDoUser)
-                openPopUpTrucker("")
+
+                //openPopUpTrucker("")
 
             } else if (bd.contains("place!?!")){
 
@@ -1153,6 +1159,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
     }
 
     //abre popup exclusiva do caminhoneiro. USada quando clica no simbolo no mapa
+    /*
     fun openPopUpTrucker (titulo: String, texto:String, bd: String, img: String, whatsapp: String, nome: String) {
         //exibeBtnOpcoes - se for não, vai exibir apenas o botão com OK, sem opção. Senão, exibe dois botões e pega os textos deles de btnSim e btnNao
 
@@ -1251,6 +1258,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
     }
 
+
+     */
     //aqui estão os clickes e os processos de salvar no banco de dados a avaliaçao
     fun openPopUpPlaces (titulo: String, texto:String, exibeBtnOpcoes:Boolean, btnSim: String, btnNao: String, call: String, bd: String, custo: String, nota: Double, tipo: String, avaliacoes: String) {
         //exibeBtnOpcoes - se for não, vai exibir apenas o botão com OK, sem opção. Senão, exibe dois botões e pega os textos deles de btnSim e btnNao
@@ -1669,15 +1678,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
 
     //mandar mensagem pra outro caminhoneiro
-    fun openWhatsApp(number: String){
+    fun openWhatsApp(number: String, message: String){
 
         val pm:PackageManager = getPackageManager();
         try {
             val waIntent: Intent = Intent(Intent.ACTION_SEND);
             waIntent.setType("text/plain");
-            val text: String  = "Mensagem automática” // Replace with your own message.
+            val text: String  = message
 
-            val toNumber = number // Replace with mobile phone number without +Sign or leading zeros, but with country code
+            val toNumber = "55"+number // Replace with mobile phone number without +Sign or leading zeros, but with country code
             //Suppose your country is India and your phone number is “xxxxxxxxxx”, then you need to send “91xxxxxxxxxx”.
 
             val intent = Intent(Intent.ACTION_VIEW)
