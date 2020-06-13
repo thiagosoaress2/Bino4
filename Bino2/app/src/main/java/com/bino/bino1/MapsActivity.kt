@@ -71,6 +71,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
     private lateinit var databaseReference: DatabaseReference
     private lateinit var auth: FirebaseAuth
 
+    val delim = "!?!***zZ"
+
     var userBd: String = "nao"
     var userMail: String = "nao"
     val raioBusca = 1.0 //  0.1 = 1km no mapa              obs: Mudamos para 10 km
@@ -208,7 +210,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                     showToast("Você está invisivel")
                     btnVisibleInvisible.setText("Ficar visível")
                 } else {
-                    updateUserStatus("online", arrayUserInfos.get(2).toString())
+                    //updateUserStatus("online", arrayUserInfos.get(2).toString())
                     showToast("Você está visível")
                     btnVisibleInvisible.setText("Ficar invisivel")
                 }
@@ -269,6 +271,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                             values = querySnapshot.child("code").value.toString()
                             if (values.equals("nao")){
                                 verificaCode()
+                            } else {
+                                updateUserStatus("online", arrayUserInfos.get(2).toString())
                             }
 
                             /*
@@ -280,6 +284,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                             pos 5 - whatsapp
 
                              */
+
+
 
                             EncerraDialog()
 
@@ -436,7 +442,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                     mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 18f))
 
                     if (!userMail.equals("semLogin")){ //Se for semLogin então não coloca ele online pois os outros não poderão ve-lo também
-                        updateUserStatus("online", "aindanao")
+                        //updateUserStatus("online", "aindanao")
                         findUsersNerby(location.latitude, location.longitude)
                         findPlacesNerby(location.latitude, location.longitude)
                         findNewPlacesAsUserMoves(location.latitude, location.longitude)
@@ -508,6 +514,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                         statusUpDateRef.child(userBd).child("img").setValue(img)
                         statusUpDateRef.child(userBd).child("lat").setValue(lat)
                         statusUpDateRef.child(userBd).child("long").setValue(long)
+                        statusUpDateRef.child(userBd).child("whats").setValue(arrayUserInfos.get(1))
+                        statusUpDateRef.child(userBd).child("nome").setValue(arrayUserInfos.get(5))
 
                     } else {
 
@@ -655,9 +663,16 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                                 values = querySnapshot.key.toString()
                                 val latFriend = querySnapshot.child("lat").value.toString()
                                 val longFriend = querySnapshot.child("long").value.toString()
+                                val whats = querySnapshot.child("whats").value.toString()
+                                val nome = querySnapshot.child("nome").value.toString()
+
+                                Log.d("teste", "nome na query usersNerby é "+nome)
+                                Log.d("teste", "whats na query usersNerby é "+whats)
 
                                 //coloca o petFriend no mapa
-                                placeTruckersInMap(img, values, latFriend.toDouble(), longFriend.toDouble())
+                                placeTruckersInMap(img, values, latFriend.toDouble(), longFriend.toDouble(), whats, nome)
+
+
                             }
                         }
                     } else {
@@ -676,11 +691,16 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
     //coloca os caminhoneiros proximos no mapa
     //coloca os usuarios proximos online no mapa
     //também tem o click do botão que esconde e mostra os usuários no mapa.
-    fun placeTruckersInMap(img: String, bdTrucker: String, lat: Double, long: Double){
+    fun placeTruckersInMap(img: String, bdTrucker: String, lat: Double, long: Double, whatsapp: String, nome: String){
+
+        Log.d("teste", "nome em PlaceInMap  é "+nome)
+        Log.d("teste", "whats PlaceInMap  é "+whatsapp)
 
         val latLng = LatLng(lat, long)
 
-        //val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("trucker!?!"+bdTrucker+"!?!"+img+"!?!"+latLng))
+        //val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("trucker!?!"+bdTrucker+delim
+        // +img+delim
+        // +latLng))
         //arrayTruckersNerby.add(mark1)
 
         //mark1.tag=0
@@ -706,7 +726,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         if (img.equals("nao")){  //se nao tem foto exibe somente o pin
             //img2 = "https://firebasestorage.googleapis.com/v0/b/store-2fa27.appspot.com/o/avatar.jpg?alt=media&token=7cc4587a-c99f-4017-b14b-09ecf7910729"
 
-            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("trucker!?!"+bdTrucker+"!?!"+img+"!?!"+latLng).icon(BitmapDescriptorFactory.fromResource(R.drawable.placeholdersmall)))
+            //val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("trucker!?!"+bdTrucker+delim
+            // +img+delim
+            // +latLng+delim
+            // +whatsapp+delim
+            // +nome).icon(BitmapDescriptorFactory.fromResource(R.drawable.placeholdersmall)))
+            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("trucker!?!"+bdTrucker+delim+nome+delim +whatsapp+img+delim).icon(BitmapDescriptorFactory.fromResource(R.drawable.placeholdersmall)))
             arrayTruckersNerby.add(mark1)
 
             mark1.tag=0
@@ -739,7 +764,16 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                             bit
                         )  //here we will insert the bitmap we got with the link in a placehold with white border.
 
-                        val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("trucker!?!"+bdTrucker+"!?!"+img2+"!?!"+latLng)
+                        Log.d("teste", "Em placetrukersInMap whastapp é "+whatsapp)
+                        Log.d("teste", "Em placetrukersInMap nome  é "+nome)
+                        //val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("trucker!?!"+bdTrucker+delim
+                        // +img2+delim
+                        // +latLng+delim
+                        // +whatsapp+delim
+                        // +nome)
+                        val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("trucker!?!"+bdTrucker+delim
+                                +nome+delim
+                                +whatsapp+delim+img2+delim)
                                 .icon(
                                     BitmapDescriptorFactory.fromBitmap(bitmapFinal)
                                 )
@@ -851,56 +885,104 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         val latLng = LatLng(lat, long)
 
         if (tipo.equals("Restaurante")){
-            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo+"!?!"+nome+"!?!"+avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurante)))
+            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+delim
+                    +latLng+delim
+                    +custo+delim
+                    +nota+delim
+                    +tipo+delim
+                    +nome+delim
+                    +avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurante)))
             arrayPlacesNerby.add(mark1)
             mark1.tag=0
             mMap.setOnMarkerClickListener(this)
 
         } else if (tipo.equals("Borracharia")){
 
-            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo+"!?!"+nome+"!?!"+avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.borracharia)))
+            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+delim
+                    +latLng+delim
+                    +custo+delim
+                    +nota+delim
+                    +tipo+delim
+                    +nome+delim
+                    +avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.borracharia)))
             arrayPlacesNerby.add(mark1)
             mark1.tag=0
             mMap.setOnMarkerClickListener(this)
 
         } else if (tipo.equals("Espaço público")){
 
-            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo+"!?!"+nome+"!?!"+avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.parque)))
+            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+delim
+                    +latLng+delim
+                    +custo+delim
+                    +nota+delim
+                    +tipo+delim
+                    +nome+delim
+                    +avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.parque)))
             arrayPlacesNerby.add(mark1)
             mark1.tag=0
             mMap.setOnMarkerClickListener(this)
 
         } else if (tipo.equals("Hotel")){
 
-            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo+"!?!"+nome+"!?!"+avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.hotel)))
+            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+delim
+                    +latLng+delim
+                    +custo+delim
+                    +nota+delim
+                    +tipo+delim
+                    +nome+delim
+                    +avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.hotel)))
             arrayPlacesNerby.add(mark1)
             mark1.tag=0
             mMap.setOnMarkerClickListener(this)
 
         } else if (tipo.equals("Oficina")){
 
-            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo+"!?!"+nome+"!?!"+avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.oficina)))
+            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+delim
+                    +latLng+delim
+                    +custo+delim
+                    +nota+delim
+                    +tipo+delim
+                    +nome+delim
+                    +avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.oficina)))
             arrayPlacesNerby.add(mark1)
             mark1.tag=0
             mMap.setOnMarkerClickListener(this)
 
         } else if (tipo.equals("Parada CCR")){
 
-            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo+"!?!"+nome+"!?!"+avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurante)))
+            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+delim
+                    +latLng+delim
+                    +custo+delim
+                    +nota+delim
+                    +tipo+delim
+                    +nome+delim
+                    +avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.ccr)))
             arrayPlacesNerby.add(mark1)
             mark1.tag=0
             mMap.setOnMarkerClickListener(this)
 
         } else if (tipo.equals("Posto gasolina")){
 
-            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo+"!?!"+nome+"!?!"+avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.mdi_local_gas_station)))
+            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+delim
+                    +latLng+delim
+                    +custo+delim
+                    +nota+delim
+                    +tipo+delim
+                    +nome+delim
+                    +avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.mdi_local_gas_station)))
             arrayPlacesNerby.add(mark1)
             mark1.tag=0
             mMap.setOnMarkerClickListener(this)
 
         } else if (tipo.equals("Posto de saúde")){
 
-            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo+"!?!"+nome+"!?!"+avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.postosaude)))
+            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+delim
+                    +latLng+delim
+                    +custo+delim
+                    +nota+delim
+                    +tipo+delim
+                    +nome+delim
+                    +avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.postosaude)))
             arrayPlacesNerby.add(mark1)
             mark1.tag=0
             mMap.setOnMarkerClickListener(this)
@@ -931,7 +1013,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
                     bitmapFinal = createUserBitmapFinalJustRound(resource, bit)  //here we will insert the bitmap we got with the link in a placehold with white border.
 
-                    val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("petFriend!?!"+BdPetFriend+"!?!"+img+"!?!"+latLng).icon(
+                    val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("petFriend!?!"+BdPetFriend+delim
+                    +img+delim
+                    +latLng).icon(
                         BitmapDescriptorFactory.fromBitmap(bitmapFinal)))
                     arrayPetFriendMarker.add(mark1)
 
@@ -1011,19 +1095,34 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
             if (bd.contains("trucker!?!")){
 
-                val tokens = StringTokenizer(bd.toString(), "!?!")
+                val tokens = StringTokenizer(bd.toString(), delim
+                )
                 val descart = tokens.nextToken() // this will contain "trucker"
                 val bdDoUser = tokens.nextToken() // this will contain "bd"
-                val img = tokens.nextToken()
+                //val descart2 = tokens.nextToken() // latlong
+                val nome  = tokens.nextToken() //nome
+                val whats = tokens.nextToken() //whastapp
+                val img = tokens.nextToken()  //img
+
+                Log.d("teste", "img é "+img)
+
+                Log.d("teste", "o valor de nome no markerClick é "+nome)
+                Log.d("teste", "o valor completo é "+bd)
+
+                //title("trucker!?!"+bdTrucker+delim
+                // +img2+delim
+                // +latLng+delim
+                // +whatsapp)
 
                 //abrir popup
                 //openPopUp("Chamar este caminhoneiro?", "Você deseja abrir o whatsapp?", true, "Sim, abrir", "Não", "trucker", bdDoUser)
 
-                //openPopUpTrucker("")
+                openPopUpTrucker(nome, "Voce deseja falar no whatsapp com ele?", bdDoUser, img, whats)
 
             } else if (bd.contains("place!?!")){
 
-                val tokens = StringTokenizer(bd.toString(), "!?!")
+                val tokens = StringTokenizer(bd.toString(), delim
+                )
                 val discart = tokens.nextToken() // this will contain "place"
                 val bdDoPlace = tokens.nextToken() // this will contain "bd"
                 val discart2 = tokens.nextToken() // this will contain "latlong"
@@ -1034,7 +1133,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                 val avaliacoes = tokens.nextToken() // this will contain "avaliacoes"
 
                 openPopUpPlaces(nome, "texto aqui", true, "Avaliar", "Fechar", "places", bdDoPlace, custo, nota.toDouble(), tipo, avaliacoes)
-                //("place!?!"+bd+"!?!"+latLng+"!?!"+custo+"!?!"+nota+"!?!"+tipo)
+                //("place!?!"+bd+delim
+                // +latLng+delim
+                // +custo+delim
+                // +nota+delim
+                // +tipo)
 
             }
 
@@ -1043,9 +1146,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         //return false
         return true
     }
-
-
-
 
 
 
@@ -1159,8 +1259,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
     }
 
     //abre popup exclusiva do caminhoneiro. USada quando clica no simbolo no mapa
-    /*
-    fun openPopUpTrucker (titulo: String, texto:String, bd: String, img: String, whatsapp: String, nome: String) {
+
+    fun openPopUpTrucker (nome: String, texto:String, bd: String, img: String, whatsapp: String) {
         //exibeBtnOpcoes - se for não, vai exibir apenas o botão com OK, sem opção. Senão, exibe dois botões e pega os textos deles de btnSim e btnNao
 
         //EXIBIR POPUP
@@ -1212,11 +1312,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         txtTexto.text = texto
 
         buttonPopupN.setOnClickListener {
+            openWhatsApp(whatsapp, "Oi, te vi no Bino!")
             popupWindow.dismiss()
         }
 
         buttonPopupS.setOnClickListener {
-            openWhatsApp(whatsapp)
             popupWindow.dismiss()
         }
 
@@ -1259,7 +1359,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
     }
 
 
-     */
+
     //aqui estão os clickes e os processos de salvar no banco de dados a avaliaçao
     fun openPopUpPlaces (titulo: String, texto:String, exibeBtnOpcoes:Boolean, btnSim: String, btnNao: String, call: String, bd: String, custo: String, nota: Double, tipo: String, avaliacoes: String) {
         //exibeBtnOpcoes - se for não, vai exibir apenas o botão com OK, sem opção. Senão, exibe dois botões e pega os textos deles de btnSim e btnNao
