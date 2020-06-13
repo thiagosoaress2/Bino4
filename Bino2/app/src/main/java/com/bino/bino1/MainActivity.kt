@@ -114,6 +114,18 @@ class MainActivity : AppCompatActivity() {
         }
 
 
+        //entrou na reforma - nao obsoleto
+        LoginWithEmail()
+
+
+
+
+
+
+
+
+
+        //remover este código. Obsoleto
         val btnLoginWithMail = findViewById<Button>(R.id.layInicial_btnSignWithEmail)
         btnLoginWithMail.setOnClickListener {
             if (isNetworkAvailable(this)) {
@@ -122,6 +134,12 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "Você está sem conexão com a internet.", Toast.LENGTH_SHORT).show()
             }
         }
+
+
+
+
+
+
 
         //login do face
 
@@ -185,7 +203,9 @@ class MainActivity : AppCompatActivity() {
             updateUI(currentUser, "unknown")
         }
 
+        LoginWithEmail()
 
+        /* obsoleto
         val LoginWithMail = findViewById<Button>(R.id.layInicial_btnSignWithEmail)
         val layInicial = findViewById<ConstraintLayout>(R.id.layInicial)
         LoginWithMail.setOnClickListener {
@@ -200,6 +220,8 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+
+         */
 
     }
 
@@ -383,18 +405,13 @@ class MainActivity : AppCompatActivity() {
 
     private fun signIn(email: String, password: String) {
 
-        val layInicial: ConstraintLayout = findViewById(R.id.layInicial)
-        layInicial.visibility = View.GONE
-        //layinicialOut()
-        //laygenericoIn()
+        ChamaDialog()
 
 
         if (!validateForm("mail")) {
             return
             EncerraDialog()
         }
-
-        //showProgressDialog()
 
         // [START sign_in_with_email]
         auth.signInWithEmailAndPassword(email, password)
@@ -793,17 +810,20 @@ class MainActivity : AppCompatActivity() {
         val layLoginMail = findViewById<ConstraintLayout>(R.id.layLoginWithEmail)  //pagina inicial
         val layNovoUser= findViewById<ConstraintLayout>(R.id.layLoginWithEmail_newUser)  //pagina inicial
         val layInicial : ConstraintLayout = findViewById(R.id.layInicial)
-        layInicial.visibility = View.GONE
+        //layInicial.visibility = View.GONE
         //laygenericoInRightToCenter(layLoginMail)
-        layLoginMail.visibility = View.VISIBLE
+        //layLoginMail.visibility = View.VISIBLE
 
 
+        Log.d("teste", "chegou no click do btn NovoUser que é um texto")
         val btnNovoUser = findViewById<TextView>(R.id.tvNovoUser)
         btnNovoUser.setOnClickListener {
-            layLoginMail.visibility = View.GONE
+            Log.d("teste", "clicou")
+            //layLoginMail.visibility = View.GONE   obsoleto
+            layInicial.visibility = View.GONE
             layNovoUser.visibility = View.VISIBLE
             laygenericoOutCenterToLeft(layLoginMail)
-            laygenericoInRightToCenter(layNovoUser)
+            //laygenericoInRightToCenter(layNovoUser)
 
             val fieldEmail_newUser: EditText =findViewById(R.id.fieldEmail_newUser)
             fieldEmail_newUser.addTextChangedListener(object : TextWatcher {
@@ -903,9 +923,10 @@ class MainActivity : AppCompatActivity() {
 
             val btnVoltar: Button = findViewById(R.id.createWithEmail_btnCancel)
             btnVoltar.setOnClickListener {
-                layLoginMail.visibility = View.VISIBLE
+                //layLoginMail.visibility = View.VISIBLE  obsoleto
+                layInicial.visibility = View.VISIBLE
                 layNovoUser.visibility = View.GONE
-                laygenericoInLeftToCenter(layLoginMail)
+                laygenericoInLeftToCenter(layInicial)
                 laygenericoOutCenterToRight(layNovoUser)
 
                 btnVoltar.setOnClickListener { null }

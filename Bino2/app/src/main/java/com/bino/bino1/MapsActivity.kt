@@ -1,6 +1,7 @@
 package com.bino.bino1
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.IntentSender
@@ -120,7 +121,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         requestToOpenGpsLikeWaze()  //liga o GPS do user
         firstMeths()
 
-        if (!userMail.equals("semlogin")){
+        Log.d("teste", "usermail é "+userMail   )
+        if (!userMail.equals("semLogin")){
             //verificar se já inseriu código
             queryGetUserInfos()
         }
@@ -279,6 +281,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
                     } else {
                         showToast("Usuário não encontrado")
+                        EncerraDialog()
                     }
 
 
@@ -389,6 +392,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
     // Métodos de localização
     //pega a posição do usuário e marca o circulo no mapa
+    @SuppressLint("MissingPermission")
     private fun getUserLocation() {
 
         if (hasGpsPermission()) {
