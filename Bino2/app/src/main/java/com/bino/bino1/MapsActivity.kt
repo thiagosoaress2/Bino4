@@ -2,6 +2,7 @@ package com.bino.bino1
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.IntentSender
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
@@ -131,14 +132,37 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
         val btnVisibleInvisible: Button = findViewById(R.id.btnVisibleInvisible)
         btnVisibleInvisible.setOnClickListener {
-            if (userIsVisibile){
-                updateUserStatus("offline", "null")
-                showToast("Você está invisivel")
-                btnVisibleInvisible.setText("Ficar visível")
+
+            if (userMail.equals("semLogin")){
+                showToast("Você precisa estar logado para fazer isso")
             } else {
-                updateUserStatus("online", "nao")
-                showToast("Você está visível")
-                btnVisibleInvisible.setText("Ficar invisivel")
+
+                if (userIsVisibile) {
+                    updateUserStatus("offline", "null")
+                    showToast("Você está invisivel")
+                    btnVisibleInvisible.setText("Ficar visível")
+                } else {
+                    updateUserStatus("online", arrayUserInfos.get(2).toString())
+                    showToast("Você está visível")
+                    btnVisibleInvisible.setText("Ficar invisivel")
+                }
+            }
+        }
+
+        val btnEditarPerfil : Button = findViewById(R.id.btnPerfil)
+        btnEditarPerfil.setOnClickListener {
+
+            if (userMail.equals("semLogin")){
+                showToast("Você precisa estar logado para fazer isso")
+            } else {
+
+                val intent = Intent(this, perfilActivity::class.java)
+                intent.putExtra("nEmergencia", arrayUserInfos.get(0))
+                intent.putExtra("nome", arrayUserInfos.get(1))
+                intent.putExtra("img", arrayUserInfos.get(2))
+                intent.putExtra("userBd", arrayUserInfos.get(3))
+
+                startActivity(intent)
             }
         }
     }
@@ -177,6 +201,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                                 verificaCode()
                             }
 
+                            /*
+                            pos 0 - nEmergencia
+                            pos 1 - nome
+                            pos 2 - img
+                            pos 3 - bd
+                            pos 4 - avaliacoes
+
+                             */
+
                             EncerraDialog()
 
                         }
@@ -194,11 +227,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                     // ...
                 }
             })
-
-
-    }
-
-    fun metodosPosQuery(){
 
 
     }
@@ -417,7 +445,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                         //coloca o user online
                         statusUpDateRef.child(userBd).child("latlong").setValue(lat + long)
                         statusUpDateRef.child(userBd).child("state").setValue(state)
-                        //statusUpDateRef.child(userBd).child("img").setValue(img)
+                        statusUpDateRef.child(userBd).child("img").setValue(img)
                         statusUpDateRef.child(userBd).child("lat").setValue(lat)
                         statusUpDateRef.child(userBd).child("long").setValue(long)
 
