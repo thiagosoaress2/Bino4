@@ -99,7 +99,7 @@ class MainActivity : AppCompatActivity() {
                 telaLoginMailNew.visibility= View.GONE
                 telainicial.visibility= View.VISIBLE
 
-                val intent = Intent(this, MenuActivity::class.java)
+                val intent = Intent(this, MapsActivity::class.java)
                 intent.putExtra("email", "semLogin" )
 
                 startActivity(intent)

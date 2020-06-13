@@ -7,65 +7,70 @@ import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.transition.Slide
 import android.transition.TransitionManager
 import android.util.Log
-import android.view.Gravity
-import android.view.LayoutInflater
-import android.view.View
-import android.view.WindowManager
+import android.view.*
 import android.widget.*
 import androidx.annotation.NonNull
+import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.GravityCompat
+import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
-
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.*
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Marker
+import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.gms.tasks.Task
+import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.navigation.NavigationView
+import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
+import kotlinx.android.synthetic.main.activity_menu.*
 import java.util.*
 import kotlin.collections.ArrayList
 
-class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
+class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener,
+    NavigationView.OnNavigationItemSelectedListener{
 
     private lateinit var mMap: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
-
     private lateinit var lastLocation: Location
 
     private lateinit var databaseReference: DatabaseReference
     private lateinit var auth: FirebaseAuth
 
     var userBd: String = "nao"
-
     var userMail: String = "nao"
-
     val raioBusca = 1.0 //  0.1 = 1km no mapa              obs: Mudamos para 10 km
-
     val arrayTruckersNerby: MutableList<Marker> = ArrayList()
-
     val arrayPlacesNerby: MutableList<Marker> = ArrayList()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_maps)
+        setContentView(R.layout.activity_menu)
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        val mapFragment = supportFragmentManager
-            .findFragmentById(R.id.map) as SupportMapFragment
+        val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
+        val toolbar = findViewById<Toolbar>(R.id.toolbar)
+        setSupportActionBar(toolbar)
+        val fab = findViewById<FloatingActionButton>(R.id.fab)
 
         databaseReference = FirebaseDatabase.getInstance().reference
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
@@ -82,11 +87,65 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
         }
 
+        fab.setOnClickListener(View.OnClickListener { view ->
+            val intent = Intent(this, EmergencyUser::class.java)
+            startActivity(intent)
+        })
+
+        val drawer = findViewById<DrawerLayout>(R.id.drawer_layout)
+        val toggle =
+            ActionBarDrawerToggle(
+                this,
+                drawer,
+                toolbar,
+                R.string.navigation_drawer_open,
+                R.string.navigation_drawer_close
+            )
+        drawer.addDrawerListener(toggle)
+        toggle.syncState()
 
         requestToOpenGpsLikeWaze()  //liga o GPS do user
-
         firstMeths()
 
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        val drawer = findViewById<DrawerLayout>(R.id.drawer_layout)
+        when (item.itemId) {
+            R.id.home -> drawer.openDrawer(GravityCompat.START)
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+
+    override fun onNavigationItemSelected(item: MenuItem): Boolean {
+        // Handle navigation view item clicks here.
+        val id = item.itemId
+        if (id == R.id.nav_user) {
+            toastDeveloping()
+        } else if (id == R.id.nav_friendsUser) {
+            toastDeveloping()
+        } else if (id == R.id.nav_getHelp) {
+            toastDeveloping()
+        }else if (id == R.id.nav_myHealth) {
+            toastDeveloping()
+        }else if (id == R.id.nav_newLocations) {
+            toastDeveloping()
+        }else if (id == R.id.nav_historyUser) {
+            toastDeveloping()
+        }else if (id == R.id.nav_settings) {
+            toastDeveloping()
+        }
+
+        val drawer = findViewById<DrawerLayout>(R.id.drawer_layout)
+        drawer.closeDrawer(GravityCompat.START)
+        return true
+    }
+
+
+
+    fun toastDeveloping(){
+        Toast.makeText(applicationContext, R.string.developing, Toast.LENGTH_LONG).show()
     }
 
     fun firstMeths(){  //métodos retirados do onCreate pra acelerar o processo de abertura da activity
@@ -123,12 +182,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
         if (hasGpsPermission()){
             getUserLocation()
-
         }
-
     }
-
-
 
 
     // Métodos de localização
@@ -137,6 +192,23 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
         if (hasGpsPermission()) {
             // 1
+            if (ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                return
+            }
             mMap.isMyLocationEnabled = true
 
             // 2
@@ -152,7 +224,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
                     mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 18f))
 
-
                     if (!userMail.equals("semLogin")){ //Se for semLogin então não coloca ele online pois os outros não poderão ve-lo também
                         updateUserStatus("online", "aindanao")
                         findUsersNerby(location.latitude, location.longitude)
@@ -160,8 +231,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                         findNewPlacesAsUserMoves(location.latitude, location.longitude)
 
                     }
-
-
                 } else {
                     //para aparelhos antigos não estava encontrando a localização
                     val toast = Toast.makeText(
@@ -178,14 +247,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             //Não tem permissão
             requestGpsPermission()
         }
-
     }
-
-
-
-
-
-
 
     //procedimentos para colocar o user online e offline
     //define status do user como online ou offline
@@ -197,6 +259,23 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
             Log.d("teste", "lastlocation ja havi sido inicializada")
 
+            if (ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                return
+            }
             fusedLocationClient.lastLocation.addOnSuccessListener(this) { location ->
                 // Got last known location. In some rare situations this can be null.
                 // 3
@@ -224,12 +303,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                         //remove o user
                         statusUpDateRef.child(userBd).removeValue()
                     }
-
                 }
             }
-
         }
-
     }
 
     override fun onStop() {
@@ -277,14 +353,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
     }
 
 
-
-
-
-
-
-
-
-
     //procura usuarios proximos online
     fun findUsersNerby(lat: Double, long: Double) {
 
@@ -322,14 +390,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
                                 //coloca o petFriend no mapa
                                 placeTruckersInMap(img, values, latFriend.toDouble(), longFriend.toDouble())
-
                             }
-
                         }
                     } else {
                         showToast("Ninguém próximo de você.")
                     }
-
                 }
 
                 override fun onCancelled(databaseError: DatabaseError) {
@@ -338,7 +403,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                     // ...
                 }
             })   //addValueEventListener
-
     }
 
     //coloca os caminhoneiros proximos no mapa
@@ -420,7 +484,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
         }
          */
-
     }
 
 
