@@ -29,6 +29,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
+import com.bino.bino1.Utils.CircleTransform
 import com.bino.bino1.Utils.SharePreferences
 
 import com.bino.bino1.Utils.startSound
@@ -54,7 +55,7 @@ import com.google.android.material.navigation.NavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 
-port kotlinx.android.synthetic.main.activity_maps.*
+import kotlinx.android.synthetic.main.activity_maps.*
 
 
 import java.io.IOException
@@ -103,16 +104,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
 
         if (!requestPermission()) {
-        pontos = SharePreferences.getPoints(this).toString()
-        updateUserPoints(0)
-
-        if (!requestPermission()){
+            pontos = SharePreferences.getPoints(this).toString()
+            updateUserPoints(0)
 
             requestThePermission()
+
         }
 
         fab.setOnClickListener(View.OnClickListener { view ->
-          callEmergency()
+            callEmergency()
         })
 
 /*        val toggle_button = findViewById<ToggleButton>(R.id.toggleBtnVisible)
@@ -147,9 +147,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         val navigationView = findViewById<NavigationView>(R.id.nav_view)
         navigationView.setNavigationItemSelectedListener {
             val drawer = findViewById<DrawerLayout>(R.id.drawer_layout)
-            if(drawer.isDrawerOpen(GravityCompat.START)){
+            if (drawer.isDrawerOpen(GravityCompat.START)) {
                 drawer.closeDrawer(GravityCompat.START)
-            }else{
+            } else {
                 drawer.openDrawer(GravityCompat.START);
             }
 
@@ -164,10 +164,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                     toastDeveloping()
                     true
                 }
-                R.id.nav_friendsUser -> {
-                    toastDeveloping()
-                    true
-                }
+
                 R.id.nav_getHelp -> {
                     openPopUpWithSound(
                         true,
@@ -201,7 +198,31 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             }
         }
 
-        val firstTimerNotify = object : CountDownTimer(10000, 1000) {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        val firstTimerNotify = object : CountDownTimer(30000, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 println("firstTimerNotify " + millisUntilFinished)
             }
@@ -221,10 +242,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         }
         firstTimerNotify.start()
 
-        val secondTimerNotify = object : CountDownTimer(90000, 1000) {
-            override fun onTick(millisUntilFinished: Long) {
-                println("secondTimerNotify " + millisUntilFinished)
-            }
+        val secondTimerNotify = object : CountDownTimer(90000, 1000) {override fun onTick(millisUntilFinished: Long) {
+            println("secondTimerNotify " + millisUntilFinished) }
 
             override fun onFinish() {
                 openPopUpWithSound(
@@ -235,12 +254,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                     "",
                     2,
                     R.raw.fruit
-                );
+                )
                 cancel()
             }
         }
         secondTimerNotify.start()
     }
+
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val drawer = findViewById<DrawerLayout>(R.id.drawer_layout)
@@ -522,8 +542,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
         if (hasGpsPermission()) {
             // 1
-            if (ActivityCompat.checkSelfPermission(
-                    this,
+            if (ActivityCompat.checkSelfPermission(this,
                     Manifest.permission.ACCESS_FINE_LOCATION
                 ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
                     this,
@@ -555,12 +574,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                     mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 18f))
 
 
-                    if (!userMail.equals("semLogin")) { //Se for semLogin então não coloca ele online pois os outros não poderão ve-lo também
-                        updateUserStatus("online", "aindanao")
 
-                    if (!userMail.equals("semLogin")){ //Se for semLogin então não coloca ele online pois os outros não poderão ve-lo também
-                        updateUserStatus("online", "aindanao")
+                    if (!userMail.equals("semLogin")){
 
+                        updateUserStatus("online", "aindanao")
                         findUsersNerby(location.latitude, location.longitude)
                         findPlacesNerby(location.latitude, location.longitude)
                         findNewPlacesAsUserMoves(location.latitude, location.longitude)
@@ -823,7 +840,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                                     img,
                                     values,
                                     latFriend.toDouble(),
-                                    longFriend.toDouble()
+                                    longFriend.toDouble(), whats, nome
                                 )
                             }
 
@@ -1472,26 +1489,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             0 // Y offset
         )
 
-
-        //aqui colocamos os ifs com cada call de cada vez que a popup for chamada
-        if (call.equals("trucker")) {
-            //abrir Whatsapp
-            Toast.makeText(this, "Funcionou", Toast.LENGTH_SHORT).show()
-        }
     }
 
-    fun openPopUpWithSound(
-        help: Boolean,
-        texto: String,
-        btnSim: String,
-        btnNao: String,
-        btn: String,
-        quantBtn: Int,
-        sound: Int
-    ) {
-
-
-    }
 
     //abre popup exclusiva do caminhoneiro. USada quando clica no simbolo no mapa
 
