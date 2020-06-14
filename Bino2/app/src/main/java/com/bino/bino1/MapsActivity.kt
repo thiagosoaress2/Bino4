@@ -1305,7 +1305,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         val buttonPopupS = view.findViewById<Button>(R.id.BtnRecebimento)
         val txtTitulo = view.findViewById<TextView>(R.id.popupTitulo)
         val txtTexto = view.findViewById<TextView>(R.id.popupTexto)
-        val imageView = view.findViewById<ImageView>(R.id.imageView)
+        val imageViewPop = view.findViewById<ImageView>(R.id.imageView)
 
 
         txtTitulo.text = nome
@@ -1321,15 +1321,16 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         }
 
         if (img.equals("nao")){
-            imageView.visibility = View.GONE
+            imageViewPop.visibility = View.GONE
         } else {
+            imageViewPop.visibility = View.GONE
             try {
                 Glide.with(applicationContext)
                     .load(img)
-                    .thumbnail(0.9f)
+                    .thumbnail(0.5f)
                     .skipMemoryCache(true)
                     .transform(CircleTransform(this)) // applying the image transformer
-                    .into(imageView)
+                    .into(imageViewPop)
             } catch (e: Exception) {
                 e.printStackTrace()
             }

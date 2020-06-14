@@ -1,10 +1,7 @@
 package com.bino.bino1
 
 import android.Manifest
-import android.content.Context
-import android.content.ContextWrapper
-import android.content.DialogInterface
-import android.content.Intent
+import android.content.*
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -24,6 +21,9 @@ import androidx.appcompat.app.AlertDialog
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.bino.bino1.Utils.dateMask
 import com.bumptech.glide.Glide
 import com.google.android.gms.tasks.Continuation
 import com.google.android.gms.tasks.Task
@@ -52,6 +52,45 @@ class perfilActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_perfil)
 
+        queryInfosExtras()
+
+    }
+
+    fun metodosIniciais() {
+
+        mFireBaseStorage = FirebaseStorage.getInstance()
+        mphotoStorageReference = mFireBaseStorage.reference
+
+        val btnHelpNumero: Button = findViewById(R.id.perfil_btnHelpNumero)
+        btnHelpNumero.setOnClickListener {
+            openPopUp(
+                "Ajuda",
+                "Você pode cadastrar um número de emergência para o qual o Bino envia sua localização e um pedido de ajuda em caso de emergência. É importante que este número seja um telefone com whatsapp.",
+                false,
+                "n",
+                "m"
+            )
+        }
+
+        val btnUpload: Button = findViewById(R.id.perfil_btnUpload)
+        btnUpload.setOnClickListener {
+
+            if (CheckPermissions()) {
+
+                openPopUp2(
+                    "Envio de imagem",
+                    "Selecione o modo de envio da imagem:",
+                    true,
+                    "Tirar foto",
+                    "foto do celular",
+                    "fotoNovoProd"
+                )
+
+            }
+
+        }
+
+
         val nEmergencia = intent.getStringExtra("nEmergencia")
         val nome = intent.getStringExtra("nome")
         val img = intent.getStringExtra("img")
@@ -67,17 +106,20 @@ class perfilActivity : AppCompatActivity() {
         val phoneFormatter2 = PhoneNumberFormatter(WeakReference(etNemergencia), country2)
         etNemergencia.addTextChangedListener(phoneFormatter2)
 
-        if (!nEmergencia.equals("nao")){
+        if (!nEmergencia.equals("nao")) {
             etNemergencia.setText(nEmergencia)
         }
         val etNome: EditText = findViewById(R.id.perfil_etNome)
-        if (!nome.equals("nao")){
+        if (!nome.equals("nao")) {
             etNome.setText(nome)
         }
         val imageView: ImageView = findViewById(R.id.perfil_imageView)
-        if (!img.equals("nao")){
+        if (!img.equals("nao")) {
             Glide.with(this).load(img).into(imageView)
         }
+
+        val etNascimento: EditText = findViewById(R.id.perfil_etNascimento)
+        etNascimento.dateMask(etNascimento.text.toString())
 
         val etNwhatsapp: EditText = findViewById(R.id.perfil_etNwhatsapp)
         //textWatcher para formatar em máscara de telefone
@@ -85,24 +127,62 @@ class perfilActivity : AppCompatActivity() {
         val phoneFormatter = PhoneNumberFormatter(WeakReference(etNwhatsapp), country)
         etNwhatsapp.addTextChangedListener(phoneFormatter)
 
-        if (!whatsapp.equals("nao")){
+        if (!whatsapp.equals("nao")) {
             etNwhatsapp.setText(whatsapp)
         }
+
+        val radioN = findViewById<RadioButton>(R.id.perfil_remedioRadioN)
+        val radioS = findViewById<RadioButton>(R.id.perfil_remedioRadioS)
+
+        radioN.setOnClickListener {
+            radioN.isChecked = true
+            radioS.isChecked = false
+        }
+
+        radioS.setOnClickListener {
+            radioN.isChecked = false
+            radioS.isChecked = true
+        }
+
 
         val btnSalvar: Button = findViewById(R.id.perfil_btnSalvar)
         btnSalvar.setOnClickListener {
 
-            if (!urifinal.equals("nao")){
+            if (!urifinal.equals("nao")) {
                 databaseReference.child("usuarios").child(userBd).child("img").setValue(urifinal)
             }
-            if (!etNemergencia.text.equals(nEmergencia) && !etNemergencia.text.isEmpty()){
-                databaseReference.child("usuarios").child(userBd).child("nEmergencia").setValue(etNemergencia.text.toString())
+            if (!etNemergencia.text.equals(nEmergencia) && !etNemergencia.text.isEmpty()) {
+                databaseReference.child("usuarios").child(userBd).child("nEmergencia")
+                    .setValue(etNemergencia.text.toString())
             }
-            if (!etNome.text.equals(nome) && !etNome.text.isEmpty()){
-                databaseReference.child("usuarios").child(userBd).child("nome").setValue(etNome.text.toString())
+            if (!etNome.text.equals(nome) && !etNome.text.isEmpty()) {
+                databaseReference.child("usuarios").child(userBd).child("nome")
+                    .setValue(etNome.text.toString())
             }
-            if (!etNwhatsapp.equals(whatsapp) && !etNwhatsapp.text.isEmpty()){
-                databaseReference.child("usuarios").child(userBd).child("whatsapp").setValue(etNwhatsapp.text.toString())
+            if (!etNwhatsapp.equals(whatsapp) && !etNwhatsapp.text.isEmpty()) {
+                databaseReference.child("usuarios").child(userBd).child("whatsapp")
+                    .setValue(etNwhatsapp.text.toString())
+            }
+
+            val etNascimento: EditText = findViewById(R.id.perfil_etNascimento)
+            val etDoencas: EditText = findViewById(R.id.perfil_etDoencas)
+
+            if (etNascimento.text.isEmpty()){
+                databaseReference.child("usuarios").child(userBd).child("nascimento").setValue(etNascimento.text.toString())
+            } else{
+                databaseReference.child("usuarios").child(userBd).child("nascimento").setValue("nao")
+            }
+
+            if (etDoencas.text.isEmpty()){
+                databaseReference.child("usuarios").child(userBd).child("doencas").setValue(etDoencas.text.toString())
+            } else{
+                databaseReference.child("usuarios").child(userBd).child("doencas").setValue("nao")
+            }
+
+            if (radioN.isChecked){
+                databaseReference.child("usuarios").child(userBd).child("remedios").setValue("nao")
+            } else {
+                databaseReference.child("usuarios").child(userBd).child("remedios").setValue("sim")
             }
 
             finish()
@@ -111,29 +191,56 @@ class perfilActivity : AppCompatActivity() {
 
     }
 
-    fun metodosIniciais(){
+    fun queryInfosExtras() {
 
-        mFireBaseStorage = FirebaseStorage.getInstance()
-        mphotoStorageReference = mFireBaseStorage.reference
-
-        val btnHelpNumero: Button = findViewById(R.id.perfil_btnHelpNumero)
-        btnHelpNumero.setOnClickListener {
-            openPopUp("Ajuda", "Você pode cadastrar um número de emergência para o qual o Bino envia sua localização e um pedido de ajuda em caso de emergência. É importante que este número seja um telefone com whatsapp.", false, "n", "m")
+        ChamaDialog()
+    val rootRef = databaseReference.child("usuarios").child(userBd)
+    rootRef.addListenerForSingleValueEvent(
+    object : ValueEventListener {
+        override fun onCancelled(p0: DatabaseError) {
+            
+            EncerraDialog()
         }
 
-        val btnUpload : Button = findViewById(R.id.perfil_btnUpload)
-        btnUpload.setOnClickListener {
+        override fun onDataChange(p0: DataSnapshot) {
 
-            if (CheckPermissions()){
+            var values: String
 
-                openPopUp2("Envio de imagem", "Selecione o modo de envio da imagem:", true, "Tirar foto", "foto do celular", "fotoNovoProd")
-
+            if (p0.child("nascimento").exists()){
+                values = p0.child("nascimento").value.toString()
+                val etNascimento: EditText = findViewById(R.id.perfil_etNascimento)
+                etNascimento.setText(values)
             }
 
+            if (p0.child("doencas").exists()){
+                values = p0.child("doencas").value.toString()
+                val etDoencas: EditText = findViewById(R.id.perfil_etDoencas)
+                etDoencas.setText(values)
+            }
+
+            if (p0.child("remedios").exists()){
+                val radioN = findViewById<RadioButton>(R.id.perfil_remedioRadioN)
+                val radioS = findViewById<RadioButton>(R.id.perfil_remedioRadioS)
+                values = p0.child("remedios").value.toString()
+                if (values.equals("nao")){
+                    radioN.isChecked = true
+                    radioS.isChecked = false
+                } else {
+                    radioN.isChecked = false
+                    radioS.isChecked = true
+                }
+            }
+
+            EncerraDialog()
+
         }
-    }
 
 
+        //EncerraDialog()
+
+    })
+
+}
 
 
 
@@ -686,6 +793,9 @@ class perfilActivity : AppCompatActivity() {
 
 
 
+
+    fun EditText.dateMask(mask: String) {
+        addTextChangedListener(dateMask(this, mask))}
 
 
     fun openPopUp (titulo: String, texto:String, exibeBtnOpcoes:Boolean, btnSim: String, btnNao: String) {

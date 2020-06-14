@@ -937,6 +937,11 @@ class MainActivity : AppCompatActivity() {
 
         }
 
+        val btnNovoUser2 = findViewById<TextView>(R.id.tvNovoUser2)
+        btnNovoUser2.setOnClickListener {
+            btnNovoUser.performClick()
+        }
+
         val signInEmail = findViewById<Button>(R.id.emailSignInButton) //botão de signin
         signInEmail.setOnClickListener {
             val etEmail = findViewById<EditText>(R.id.fieldEmail);
