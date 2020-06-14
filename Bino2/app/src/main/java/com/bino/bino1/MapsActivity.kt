@@ -102,6 +102,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         //recupera o email do usuário
         userMail = intent.getStringExtra("email")
 
+        SharePreferences.setPoints(this, 5)
 
         if (!requestPermission()) {
             pontos = SharePreferences.getPoints(this).toString()
@@ -138,7 +139,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         requestToOpenGpsLikeWaze()  //liga o GPS do user
         firstMeths()
 
-        Log.d("teste", "usermail é " + userMail)
         if (!userMail.equals("semLogin")) {
             //verifica se já inseriu código
             queryGetUserInfos()
@@ -275,12 +275,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             showToast("Você precisa estar logado para fazer isso")
         } else {
             if (userIsVisibile) {
-                updateUserStatus("offline", "null")
+                updateUserStatus("offline", "null", "null", "null")
                 showToast("Você está invisivel")
 
                 //btnVisibleInvisible.setText("Ficar visível")
             } else {
-                updateUserStatus("online", arrayUserInfos.get(2).toString())
+                updateUserStatus("online", arrayUserInfos.get(2).toString(),"null", "null")
                 showToast("Você está visível")
                 //btnVisibleInvisible.setText("Ficar invisivel")
             }
@@ -346,7 +346,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             } else {
 
                 if (userIsVisibile) {
-                    updateUserStatus("offline", "null")
+                    updateUserStatus("offline", "null", "null", "null")
                     showToast("Você está invisivel")
                     btnVisibleInvisible.setText("Ficar visível")
                 } else {
@@ -401,15 +401,20 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                             }
 
                             //avisa pra preencher o perfil
+                            /*
                             if (pontos.toInt()<45){
                                 openPopUp("Olá!", "Você sabia que pode ganhar pontos preenchendo seu perfil?", true, "Preencher perfil", "Fechar")
                             }
+
+                             */
+
+                            isProfileDone(arrayUserInfos.get(0), arrayUserInfos.get(1), arrayUserInfos.get(2), arrayUserInfos.get(4), pontos.toInt())
 
                             values = querySnapshot.child("code").value.toString()
                             if (values.equals("nao")) {
                                 verificaCode()
                             } else {
-                                updateUserStatus("online", arrayUserInfos.get(2).toString())
+                                updateUserStatus("online", arrayUserInfos.get(2).toString(), arrayUserInfos.get(5), arrayUserInfos.get(1))
                                 //getTheBest()
                             }
 
@@ -454,7 +459,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         val etCode: EditText = findViewById(R.id.verifyCode_etCode)
         val btnVerify: Button = findViewById(R.id.verifyCode_btnVerifica)
 
-        Log.d("teste", "chegou na verificaCode")
         btnVerify.setOnClickListener {
             if (etCode.text.isEmpty()) {
                 etCode.performClick()
@@ -469,7 +473,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
     fun queryCode(code: String) {
 
         ChamaDialog()
-        Log.d("teste", "Chegou aqui")
         val rootRef = databaseReference.child("code")
         rootRef.orderByChild("code").equalTo(code).limitToFirst(1)
             //getInstance().reference.child("usuarios").orderByChild("email").equalTo(userMail)
@@ -480,7 +483,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
                         for (querySnapshot in dataSnapshot.children) {
 
-                            Log.d("teste", "Entrou na query")
 
                             val fiador = querySnapshot.child("fiador").getValue().toString()
                             databaseReference.child("usuarios").child(arrayUserInfos.get(3))
@@ -577,7 +579,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
                     if (!userMail.equals("semLogin")){
 
-                        updateUserStatus("online", "aindanao")
+                        updateUserStatus("online", "aindanao", "nao", "nao")
                         findUsersNerby(location.latitude, location.longitude)
                         findPlacesNerby(location.latitude, location.longitude)
                         findNewPlacesAsUserMoves(location.latitude, location.longitude)
@@ -608,7 +610,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
     //procedimentos para colocar o user online e offline
     //define status do user como online ou offline
-    fun updateUserStatus(state: String, img: String) {
+    fun updateUserStatus(state: String, img: String, whatsapp: String, nome: String) {
 
         if (this@MapsActivity::lastLocation.isInitialized) {
 
@@ -649,8 +651,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                         statusUpDateRef.child(userBd).child("img").setValue(img)
                         statusUpDateRef.child(userBd).child("lat").setValue(lat)
                         statusUpDateRef.child(userBd).child("long").setValue(long)
-                        statusUpDateRef.child(userBd).child("whats").setValue(arrayUserInfos.get(5))
-                        statusUpDateRef.child(userBd).child("nome").setValue(arrayUserInfos.get(1))
+                        //statusUpDateRef.child(userBd).child("whats").setValue(arrayUserInfos.get(5))
+                        //statusUpDateRef.child(userBd).child("nome").setValue(arrayUserInfos.get(1))
+                        statusUpDateRef.child(userBd).child("whats").setValue(whatsapp)
+                        statusUpDateRef.child(userBd).child("whats").setValue(nome)
                         statusUpDateRef.child(userBd).child("pontos").setValue(pontos)
 
                     } else {
@@ -665,13 +669,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
     override fun onStop() {
         super.onStop()
-        updateUserStatus("offline", "aindanao")
+        updateUserStatus("offline", "aindanao", "nao", "nao")
 
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        updateUserStatus("offline", "aindanao")
+        updateUserStatus("offline", "aindanao", "nao", "nao")
     }
 
     //requisição para ligar o gps do user direto
@@ -865,10 +869,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
     fun placeTruckersInMap(img: String, bdTrucker: String, lat: Double, long: Double, whatsapp: String, nome: String){
 
-
-        Log.d("teste", "nome em PlaceInMap  é "+nome)
-        Log.d("teste", "whats PlaceInMap  é "+whatsapp)
-
         val latLng = LatLng(lat, long)
 
         var img2 = "nao"
@@ -912,8 +912,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                             bit
                         )  //here we will insert the bitmap we got with the link in a placehold with white border.
 
-                        Log.d("teste", "Em placetrukersInMap whastapp é "+whatsapp)
-                        Log.d("teste", "Em placetrukersInMap nome  é "+nome)
                         //val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("trucker!?!"+bdTrucker+delim
                         // +img2+delim
                         // +latLng+delim
@@ -1030,7 +1028,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         var whats = "nao"
         var nomeMaior = "nao"
         var img = "nao"
-        Log.d("teste", "tamanho do array "+arrayPontosDosUsersProximos.size)
         while (cont<arrayPontosDosUsersProximos.size){
             if (cont==0){
                 maiorValor = arrayPontosDosUsersProximos.get(cont)
@@ -1338,11 +1335,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                 val whats = tokens.nextToken() //whastapp
                 val img = tokens.nextToken()  //img
 
-                Log.d("teste", "img é "+img)
-
-                Log.d("teste", "o valor de nome no markerClick é "+nome)
-                Log.d("teste", "o valor completo é "+bd)
-
                 //title("trucker!?!"+bdTrucker+delim
                 // +img2+delim
                 // +latLng+delim
@@ -1383,7 +1375,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
 
     //Abre a popup
-    fun openPopUp (titulo: String, texto:String, exibeBtnOpcoes:Boolean, btnSim: String, btnNao: String) {
+    fun openPopUp (titulo: String, texto:String, exibeBtnOpcoes:Boolean, btnSim: String, btnNao: String, total: Int) {
         //exibeBtnOpcoes - se for não, vai exibir apenas o botão com OK, sem opção. Senão, exibe dois botões e pega os textos deles de btnSim e btnNao
 
         //EXIBIR POPUP
@@ -1427,6 +1419,17 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         val buttonPopupOk = view.findViewById<Button>(R.id.popupBtnOk)
         val txtTitulo = view.findViewById<TextView>(R.id.popupTitulo)
         val txtTexto = view.findViewById<TextView>(R.id.popupTexto)
+        val progressbar = view.findViewById<ProgressBar>(R.id.progressBar)
+        val txBarra = view.findViewById<TextView>(R.id.popupMsg)
+
+        if (total==0){
+           txBarra.setText("Você ainda não preencheu nenhuma informação importante.")
+        } else if (total <=25){
+            txBarra.setText("Você preencheu poucas informações. Vamos adicionar coisas importantes?")
+        } else if (total <=75){  //
+            txBarra.setText("Seu perfil está quase completo")
+        }
+        progressbar.setProgress(total)
 
         if (exibeBtnOpcoes) {
             //vai exibir os botões com textos e esconder o btn ok
@@ -2404,12 +2407,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
     }
 
 
+    override fun onResume() {
+        super.onResume()
+        Log.d("teste", "pontos no resume é "+pontos)
+        pontos = SharePreferences.getPoints(this).toString()
+        Log.d("teste", "pontos no resume depois de atualizar é "+pontos)
 
-    override fun onStart() {
-        super.onStart()
         updateUserPoints(0)
     }
-
 
     //métodos de busca de enderço a partir de Latitude e Longitude ou o contrário
     //private fun getAddress(latLng: LatLng): String {
@@ -2683,6 +2688,29 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
     }
 
 
+    fun isProfileDone(nEmergencia: String, nome: String, img: String, whastapp: String, pontos: Int){
+
+        var total = 100
+        if (nEmergencia.equals("nao")){
+            total= total-25
+        }
+        if (nome.equals("nao")){
+            total = total-25
+        }
+        if (img.equals("nao")){
+            total = total-25
+        }
+        if (whastapp.equals("nao")){
+            total = total-25
+        }
+
+        if (pontos.toInt()<45){
+            openPopUp("Olá!", "Você sabia que pode ganhar pontos preenchendo seu perfil?", true, "Preencher perfil", "Fechar", total)
+        }
+
+
+    }
+
     fun updateUserPointsToBd(pontos: String){
         val textView: TextView = findViewById(R.id.tvPontos)
         textView.setText("Seus pontos: "+pontos)
@@ -2697,6 +2725,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         if (novosPontos!=0){
             pontos = (pontos.toInt()+novosPontos).toString()
             showToast("Parabéns! Você ganhou "+novosPontos+" pontos")
+            databaseReference.child("usuarios").child(userBd).child("pontos").setValue(pontos)
         }
         SharePreferences.setPoints(this, pontos.toInt())
         val textView: TextView = findViewById(R.id.tvPontos)
