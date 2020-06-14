@@ -122,7 +122,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         } else {
 
             if (userIsVisibile) {
-                updateUserStatus("offline", "null")
+                updateUserStatus("offline", "null", "null","null")
                 showToast("Você está invisivel")
                 btnVisibleInvisible.setText("Ficar visível")
             } else {
@@ -170,7 +170,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         switch_button_visible.setOnCheckedChangeListener { buttonView, isChecked ->
             if (isChecked) {
                 // The switch is enabled/checked
-                updateUserStatus("offline", "null")
+                updateUserStatus("offline", "null","null","null")
                 showToast("Você está invisivel")
                 text_view_visible.setText(R.string.text_switch_visible)
             } else {
@@ -254,6 +254,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
             }
         }
+
 
 
         val firstTimerNotify = object : CountDownTimer(30000, 1000) {
@@ -430,7 +431,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
                             values = querySnapshot.child("img").value.toString()
                             arrayUserInfos.add(values)
-                            Log.d("testeImg", "valor em arrayUserInfos.get(2) é "+arrayUserInfos.get(2))
+                            Log.d(
+                                "testeImg",
+                                "valor em arrayUserInfos.get(2) é " + arrayUserInfos.get(2)
+                            )
 
                             values = querySnapshot.key.toString()
                             arrayUserInfos.add(values)
@@ -454,23 +458,19 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
                             //avisa pra preencher o perfil
 
-                            if (pontos.toInt() < 45) {
-                                openPopUp(
-                                    "Olá!",
-                                    "Você sabia que pode ganhar pontos preenchendo seu perfil?",
-                                    true,
-                                    "Preencher perfil",
-                                    "Fechar"
-                                )
-
-
-                            isProfileDone(arrayUserInfos.get(0), arrayUserInfos.get(1), arrayUserInfos.get(2), arrayUserInfos.get(4), pontos.toInt())
+                            isProfileDone(
+                                arrayUserInfos.get(0),
+                                arrayUserInfos.get(1),
+                                arrayUserInfos.get(2),
+                                arrayUserInfos.get(4),
+                                pontos.toInt()
+                            )
 
                             values = querySnapshot.child("code").value.toString()
                             if (values.equals("nao")) {
                                 verificaCode()
                             } else {
-                                updateUserStatus("online", arrayUserInfos.get(2).toString(), arrayUserInfos.get(5), arrayUserInfos.get(1))
+                                updateUserStatus("online", arrayUserInfos.get(2).toString(),arrayUserInfos.get(5),arrayUserInfos.get(1))
                                 //getTheBest()
                             }
 
@@ -502,7 +502,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                     // ...
                 }
             })
+
     }
+
+
 
     fun verificaCode() {
 
@@ -1091,8 +1094,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                                  */
 
 
-
-        var cont=0
+        var cont = 0
         var maiorValor = "0"
         var whats = "nao"
         var nomeMaior = "nao"
@@ -1105,70 +1107,77 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                 nomeMaior = arrayPontosDosUsersProximos.get(cont + 1)
                 whats = arrayPontosDosUsersProximos.get(cont + 2)
                 img = arrayPontosDosUsersProximos.get(cont + 3)
-        while (cont<arrayPontosDosUsersProximos.size){
-            if (cont==0){
-                maiorValor = arrayPontosDosUsersProximos.get(cont)
-                nomeMaior = arrayPontosDosUsersProximos.get(cont+1)
-                //whats = arrayPontosDosUsersProximos.get(cont+2)
-                whats = arrayPontosDosUsersProximos.get(cont+2)
-                img = arrayPontosDosUsersProximos.get(cont+3)
-                //img = arrayPontosDosUsersProximos.get(cont+3)
+                while (cont < arrayPontosDosUsersProximos.size) {
+                    if (cont == 0) {
+                        maiorValor = arrayPontosDosUsersProximos.get(cont)
+                        nomeMaior = arrayPontosDosUsersProximos.get(cont + 1)
+                        //whats = arrayPontosDosUsersProximos.get(cont+2)
+                        whats = arrayPontosDosUsersProximos.get(cont + 2)
+                        img = arrayPontosDosUsersProximos.get(cont + 3)
+                        //img = arrayPontosDosUsersProximos.get(cont+3)
 
-                Log.d("teste", "o valor de nomeMaior é "+nomeMaior)
+                        Log.d("teste", "o valor de nomeMaior é " + nomeMaior)
 
-            } else {
+                    } else {
 
-                if (arrayPontosDosUsersProximos.get(cont).toInt() > maiorValor.toInt()) {
-                    maiorValor = arrayPontosDosUsersProximos.get(cont)
-                    nomeMaior = arrayPontosDosUsersProximos.get(cont+1)
-                    whats = arrayPontosDosUsersProximos.get(cont+2)
-                    img = arrayPontosDosUsersProximos.get(cont+3)
-                    Log.d("teste", "o valor de nomeMaior é "+nomeMaior)
+                        if (arrayPontosDosUsersProximos.get(cont).toInt() > maiorValor.toInt()) {
+                            maiorValor = arrayPontosDosUsersProximos.get(cont)
+                            nomeMaior = arrayPontosDosUsersProximos.get(cont + 1)
+                            whats = arrayPontosDosUsersProximos.get(cont + 2)
+                            img = arrayPontosDosUsersProximos.get(cont + 3)
+                            Log.d("teste", "o valor de nomeMaior é " + nomeMaior)
 
+                        }
+                    }
+                    cont = cont + 4
                 }
+
+                val imageView: ImageView = findViewById(R.id.bestGuiInArea)
+                val textView: TextView = findViewById(R.id.bestGuiInAreaPoints)
+
+                textView.setText(nomeMaior + "\nPontos: " + maiorValor)
+
+                imageView.setOnClickListener {
+                    openPopUpTrucker(
+                        nomeMaior,
+                        "Voce deseja falar no whatsapp com ele?",
+                        img,
+                        whats
+                    )
+                }
+                showToast("Parabéns! Você é o caminhoneiro com mais pontos do local e todo mundo está sabendo disto!")
+
+                if (img.equals("nao")) {
+                    imageView.visibility = View.VISIBLE
+                    try {
+                        Glide.with(applicationContext)
+                            .load(R.drawable.perfil)
+                            .thumbnail(0.7f)
+                            .skipMemoryCache(true)
+                            .transform(CircleTransform(this)) // applying the image transformer
+                            .into(imageView)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                } else {
+                    imageView.visibility = View.VISIBLE
+                    try {
+                        Glide.with(applicationContext)
+                            .load(img)
+                            .thumbnail(0.7f)
+                            .skipMemoryCache(true)
+                            .transform(CircleTransform(this)) // applying the image transformer
+                            .into(imageView)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+
+                textView.visibility = View.VISIBLE
+
+
             }
-            cont = cont + 4
         }
-
-        val imageView: ImageView = findViewById(R.id.bestGuiInArea)
-        val textView: TextView = findViewById(R.id.bestGuiInAreaPoints)
-
-        textView.setText(nomeMaior + "\nPontos: " + maiorValor)
-
-        imageView.setOnClickListener {
-            openPopUpTrucker(nomeMaior, "Voce deseja falar no whatsapp com ele?", img, whats)
-        }
-        showToast("Parabéns! Você é o caminhoneiro com mais pontos do local e todo mundo está sabendo disto!")
-
-        if (img.equals("nao")) {
-            imageView.visibility = View.VISIBLE
-            try {
-                Glide.with(applicationContext)
-                    .load(R.drawable.perfil)
-                    .thumbnail(0.7f)
-                    .skipMemoryCache(true)
-                    .transform(CircleTransform(this)) // applying the image transformer
-                    .into(imageView)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        } else {
-            imageView.visibility = View.VISIBLE
-            try {
-                Glide.with(applicationContext)
-                    .load(img)
-                    .thumbnail(0.7f)
-                    .skipMemoryCache(true)
-                    .transform(CircleTransform(this)) // applying the image transformer
-                    .into(imageView)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-
-        textView.visibility = View.VISIBLE
-
-
     }
 
 
