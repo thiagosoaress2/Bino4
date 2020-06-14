@@ -25,14 +25,7 @@
             android:layout_height="match_parent"
             tools:context=".MapsActivity" />
 
-        <Button
-            android:id="@+id/btnLogout"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Logout"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/bestGuiLayout"
@@ -64,48 +57,6 @@
                 app:layout_constraintTop_toTopOf="parent"
                 tools:visibility="visible" />
 
-            <TextView
-                android:id="@+id/tvPontos"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:text="Seus pontos:"
-                android:visibility="gone"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"></TextView>
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <Button
-            android:id="@+id/btnLogin"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Login"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/btnLogout" />
-
-
-        <ImageView
-            android:id="@+id/bestGuiInArea"
-            android:layout_width="55dp"
-            android:layout_height="55dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="24dp"
-            android:elevation="25dp"
-            android:visibility="gone"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:srcCompat="@tools:sample/avatars"
-            tools:visibility="visible" />
-
-        <Button
-            android:id="@+id/btnVisibleInvisible"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Ficar invisivel"
-            app:layout_constraintTop_toBottomOf="@+id/btnLogin" />
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>
