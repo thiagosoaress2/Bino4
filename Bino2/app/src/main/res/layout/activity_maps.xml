@@ -200,7 +200,7 @@
             android:id="@+id/textView14"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Convide amigos\ncaminhoneiros"
+            android:text="@string/maps_convite_txtit"
             android:textColor="#000000"
             android:textSize="30sp"
             android:textStyle="bold"
@@ -213,7 +213,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="1º - Gere o código\n2º - Copie ou Envie para um amigo caminhoneiro"
+            android:text="@string/maps_convite_tx1"
             android:textColor="#000000"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -244,7 +244,7 @@
             android:background="@drawable/xml_round_button_off_emergency"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
-            android:text="Gerar codigo"
+            android:text="@string/maps_convite_btnGerar"
             android:textAllCaps="false"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -270,7 +270,7 @@
             app:layout_constraintGuide_percent="0.5" />
 
         <Button
-            android:id="@+id/button2"
+            android:id="@+id/generateCode_btnEnviar"
             android:layout_width="0dp"
             android:layout_height="40dp"
             android:layout_marginStart="24dp"
@@ -280,10 +280,10 @@
             android:textAllCaps="false"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="@+id/guideline6"
-            app:layout_constraintTop_toTopOf="@+id/button3" />
+            app:layout_constraintTop_toTopOf="@+id/generateCode_btnCopiar" />
 
         <Button
-            android:id="@+id/button3"
+            android:id="@+id/generateCode_btnCopiar"
             android:layout_width="0dp"
             android:layout_height="40dp"
             android:layout_marginStart="24dp"
@@ -324,7 +324,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginBottom="32dp"
-            android:text="INSIRA SEU CÓDIGO,\nCAMINHONEIRO"
+            android:text="@string/maps_verify_txtit"
             android:textAlignment="center"
             android:textColor="#ffffff"
             android:textSize="25sp"
@@ -364,7 +364,7 @@
             android:background="@drawable/xml_round_button_off_emergency"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
-            android:text="Verificar"
+            android:text="@string/maps_verify_btnVerificar"
             android:textAllCaps="false"
             app:layout_constraintEnd_toEndOf="@+id/verifyCode_etCode"
             app:layout_constraintStart_toStartOf="@+id/verifyCode_etCode"

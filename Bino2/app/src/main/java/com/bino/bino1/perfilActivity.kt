@@ -198,7 +198,7 @@ class perfilActivity : AppCompatActivity() {
     rootRef.addListenerForSingleValueEvent(
     object : ValueEventListener {
         override fun onCancelled(p0: DatabaseError) {
-            
+
             EncerraDialog()
         }
 

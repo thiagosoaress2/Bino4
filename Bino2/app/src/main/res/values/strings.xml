@@ -9,6 +9,44 @@
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_settings">Settings</string>
 
+    //MainActivity
+    //layInicial
+    <string name="main_layInicial_txBemVindo">BEM VINDO, \nCAMINHONEIRO</string>
+    <string name="main_layInicial_btnAcessar">Acessar</string>
+    <string name="main_layInicial_ou">OU</string>
+    <string name="main_layInicial_btnGoogle">  Entrar com Google</string>
+    <string name="main_layInicial_btnFace">  Entrar com Facebook</string>
+    <string name="main_layInicial_btnSemLogin">  Entrar sem Login</string>
+    <string name="main_layInicial_txRecebeuConv">Recebeu um convite?</string>
+    <string name="main_layInicial_txCrie">Crie sua conta</string>
+    //layLoginWithEmail
+    <string name="main_layLoginWithEmail_btnCriar">Criar conta</string>
+    //layVerificaEmail
+    <string name="main_layVerificaMail_txTitulo">Verificação do e-mail</string>
+    <string name="main_layVerificaMail_tx1">Acabamos de enviar uma mensagem de verificação para o e-mail informado. Basta seguir as instruções no e-mail para finalizar o cadastro. Caso o e-mail não tenha chegado, clique no botão abaixo.</string>
+    <string name="main_layVerificaMail_btnVerifiquei">Já verifiquei</string>
+    <string name="main_layVerificaMail_btnReenviar">Reenviar e-mail</string>
+
+
+    //ActivityPerfil
+    <string name="perfil_tvNome">Nome completo</string>
+    <string name="perfil_tvData">Data de nascimento</string>
+    <string name="perfil_tvCel">Número de celular</string>
+    <string name="perfil_tvEmerg">Número para emergências</string>
+    <string name="perfil_tvDoencas">Doenças pré-existentes</string>
+    <string name="perfil_tvRemedios">Toma remédio?</string>
+    <string name="perfil_btnSalvar">Salvar e sair</string>
+
+
+    //AcitivityMaps
+    //GenerateCode
+    <string name="maps_convite_txtit">Convide amigos\ncaminhoneiros</string>
+    <string name="maps_convite_tx1">1º - Gere o código\n2º - Copie ou Envie para um amigo caminhoneiro</string>
+    <string name="maps_convite_btnGerar">Gerar Código</string>
+    //VerifyCode
+    <string name="maps_verify_txtit">INSIRA SEU CÓDIGO,\nCAMINHONEIRO</string>
+    <string name="maps_verify_btnVerificar">Verificar</string>
+
     //ActivityNames
     <string name="activity_name_emergence">Emergência</string>
 

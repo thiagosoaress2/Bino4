@@ -618,6 +618,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                 etCodigo.setText(codeFinal)
             }
         }
+
+        val btnCopiar: Button = findViewById(R.id.generateCode_btnCopiar)
+        btnCopiar.setOnClickListener {
+            showToast("Em desenvolvimento")
+        }
+        val btnEnviar: Button = findViewById(R.id.generateCode_btnEnviar)
+        btnEnviar.setOnClickListener {
+            btnCopiar.performClick()
+        }
     }
 
     fun rand(start: Int, end: Int): Int {

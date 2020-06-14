@@ -158,6 +158,11 @@ class MainActivity : AppCompatActivity() {
 
         }
 
+        val btnLoginGoogle: Button = findViewById(R.id.layInicial_btnLoginGoogle)
+        btnLoginGoogle.setOnClickListener {
+            Toast.makeText(this, "Em breve", Toast.LENGTH_SHORT).show()
+        }
+
 
 
 /*
