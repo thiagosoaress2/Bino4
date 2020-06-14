@@ -310,19 +310,25 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
     }
 
     fun callEmergency() {
-        val latLong: LatLng = LatLng(lastLocation.latitude, lastLocation.longitude)
-        val intent = Intent(this, EmergencyUser::class.java)
-        if (arrayUserInfos != null) {
-            intent.putExtra("nome", "Um caminhoneiro")
+
+        if (arrayUserInfos.size!=0){
+            val latLong: LatLng = LatLng(lastLocation.latitude, lastLocation.longitude)
+            val intent = Intent(this, EmergencyUser::class.java)
+            if (arrayUserInfos != null) {
+                intent.putExtra("nome", "Um caminhoneiro")
+            } else {
+                intent.putExtra("nome", arrayUserInfos.get(1))
+                intent.putExtra("lat", lastLocation.latitude.toString())
+                intent.putExtra("lng", lastLocation.longitude.toString())
+                intent.putExtra("address", getAddress(latLong))
+                intent.putExtra("whats", arrayUserInfos.get(5))
+                intent.putExtra("userBd", userBd)
+            }
+            startActivity(intent)
         } else {
-            intent.putExtra("nome", arrayUserInfos.get(1))
-            intent.putExtra("lat", lastLocation.latitude.toString())
-            intent.putExtra("lng", lastLocation.longitude.toString())
-            intent.putExtra("address", getAddress(latLong))
-            intent.putExtra("whats", arrayUserInfos.get(5))
-            intent.putExtra("userBd", userBd)
+            showToast("Aguarde, suas informações ainda estão sendo carregadas.")
         }
-        startActivity(intent)
+
     }
 
     private fun perfilUser() {
