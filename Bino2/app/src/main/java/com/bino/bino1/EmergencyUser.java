@@ -103,7 +103,7 @@ private void callWhatsapp(String phone, String name, String lat, String lng,  St
                 "Latitude: "+lat+"\n" +
                 "Longitude: "+lng+"\n" +
                 "Endereço aproximado: "+address+"\n" +
-                "Se você puder contatar uma autoridade competente seria ótimo. Fica atento.";
+                "Se você puder contatar uma autoridade competente seria ótimo. Fique atento.";
 
         startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(String.format("https://api.whatsapp.com/send?phone=%s&text=%s", phoneNumberWithCountryCode, message))));
     } else {

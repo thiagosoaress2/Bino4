@@ -403,32 +403,39 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                             values = querySnapshot.child("whatsapp").value.toString()
                             arrayUserInfos.add(values)
 
-                            pontos = querySnapshot.child("pontos").value.toString()
-                            val pontosProvi = SharePreferences.getPoints(this@MapsActivity)
-                            if (pontosProvi > pontos.toInt()) {
-                                pontos = pontosProvi.toString()//atualiza o valor para o maior
-                                updateUserPointsToBd(pontos) //se o que tem no shared é maior, atualizar o bd
-
-                            } else {
-                                updateUserPoints(0)  //se for menor ou igual continuar usando os pontos que estão no shared
-                            }
-
-                            //avisa pra preencher o perfil
-
-                            isProfileDone(
-                                arrayUserInfos.get(0),
-                                arrayUserInfos.get(1),
-                                arrayUserInfos.get(2),
-                                arrayUserInfos.get(4),
-                                pontos.toInt()
-                            )
 
                             values = querySnapshot.child("code").value.toString()
                             if (values.equals("nao")) {
                                 verificaCode()
                             } else {
-                                updateUserStatus("online", arrayUserInfos.get(2).toString(),arrayUserInfos.get(5),arrayUserInfos.get(1))
+                                updateUserStatus(
+                                    "online",
+                                    arrayUserInfos.get(2).toString(),
+                                    arrayUserInfos.get(5),
+                                    arrayUserInfos.get(1)
+                                )
                                 //getTheBest()
+
+
+                                pontos = querySnapshot.child("pontos").value.toString()
+                                val pontosProvi = SharePreferences.getPoints(this@MapsActivity)
+                                if (pontosProvi > pontos.toInt()) {
+                                    pontos = pontosProvi.toString()//atualiza o valor para o maior
+                                    updateUserPointsToBd(pontos) //se o que tem no shared é maior, atualizar o bd
+
+                                } else {
+                                    updateUserPoints(0)  //se for menor ou igual continuar usando os pontos que estão no shared
+                                }
+
+                                //avisa pra preencher o perfil
+
+                                isProfileDone(
+                                    arrayUserInfos.get(0),
+                                    arrayUserInfos.get(1),
+                                    arrayUserInfos.get(2),
+                                    arrayUserInfos.get(4),
+                                    pontos.toInt()
+                                )
                             }
 
                             /*
@@ -776,7 +783,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
                 val codeFinal =
                     (code1.toString() + code2.toString() + code3.toString() + code4.toString() + code5.toString()).toString()
-                val newCad: DatabaseReference = databaseReference.child("code").child("code").push()
+                val newCad: DatabaseReference = databaseReference.child("code").push()
                 newCad.child("code").setValue(codeFinal)
                 newCad.child("fiador").setValue(userBd)
 
@@ -970,6 +977,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         } else {
 
             img2 = img
+
 
             Glide.with(this@MapsActivity)
                 .asBitmap()

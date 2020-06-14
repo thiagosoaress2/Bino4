@@ -183,8 +183,11 @@ class perfilActivity : AppCompatActivity() {
 
             }
             if (!etNemergencia.text.equals(nEmergencia) && !etNemergencia.text.isEmpty()) {
+                var numero = etNemergencia.text.toString()
+                numero = numero.replace("(", "")
+                numero = numero.replace(")","").trim()
                 databaseReference.child("usuarios").child(userBd).child("nEmergencia")
-                    .setValue(etNemergencia.text.toString())
+                    .setValue(numero)
                 if (nEmergencia.equals("nao")){
                     updateUserPoints(20)
                 }
@@ -199,12 +202,14 @@ class perfilActivity : AppCompatActivity() {
 
             }
             if (!etNwhatsapp.equals(whatsapp) && !etNwhatsapp.text.isEmpty()) {
+                var numero = etNwhatsapp.text.toString()
+                numero = numero.replace("(", "")
+                numero = numero.replace(")","").trim()
                 databaseReference.child("usuarios").child(userBd).child("whatsapp")
-                    .setValue(etNwhatsapp.text.toString())
+                    .setValue(numero)
                 if (whatsapp.equals("nao")){
                     updateUserPoints(15)
                 }
-
             }
 
             val etNascimento: EditText = findViewById(R.id.perfil_etNascimento)
