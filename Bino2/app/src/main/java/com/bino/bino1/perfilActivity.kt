@@ -14,6 +14,7 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.transition.Slide
 import android.transition.TransitionManager
+import android.util.Log
 import android.view.*
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
@@ -1015,8 +1016,10 @@ class perfilActivity : AppCompatActivity() {
 
     fun updateUserPoints(pontosNovos: Int){
 
+
         pontos = pontos.toInt()+pontosNovos
-        SharePreferences.setPoints(this, pontos.toInt())
+        SharePreferences.setPoints(this, pontos)
+        //databaseReference.child("usuarios").child(userBd).child("pontos").setValue(pontos.toString())
         Toast.makeText(this, "Parabens! você ganhou "+pontosNovos.toString(), Toast.LENGTH_SHORT).show()
 
     }
