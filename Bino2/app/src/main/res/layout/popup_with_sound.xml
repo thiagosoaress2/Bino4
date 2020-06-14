@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/lay_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="#ffffff"
+        android:elevation="20dp"
+        app:layout_constraintBottom_toBottomOf="@+id/constraintLayout18"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintWidth_percent="0.9">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <ImageView
+                android:id="@+id/poupup_avatar_bino"
+                android:layout_width="140dp"
+                android:layout_height="200dp"
+                android:layout_marginTop="20dp"
+                android:src="@drawable/avatar_bino"
+                tools:ignore="MissingConstraints" />
+
+            <ImageView
+                android:id="@+id/poupup_sound"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_alignParentRight="true"
+                android:layout_margin="3dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_toRightOf="@+id/poupup_avatar_bino"
+                android:orientation="vertical"
+                android:layout_centerVertical="true"
+                tools:ignore="MissingConstraints">
+
+                <TextView
+                    android:id="@+id/popupTexto"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="10dp"
+                    android:layout_marginTop="30dp"
+                    android:text="Ei Pedro"
+                    android:textAlignment="center"
+                    android:textColor="@android:color/black"
+                    android:textSize="20dp"
+                    android:textStyle="bold" />
+
+                <Button
+                    android:id="@+id/btnYes"
+                    android:layout_width="130dp"
+                    android:layout_height="35dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="15dp"
+                    android:background="@drawable/xml_round_button_off_emergency"
+                    android:text="Button"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/black" />
+
+                <Button
+                    android:id="@+id/btnNo"
+                    android:layout_width="130dp"
+                    android:layout_height="35dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="15dp"
+                    android:background="@drawable/xml_round_button_off_emergency"
+                    android:text="Button"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/black" />
+                <Button
+                    android:id="@+id/btn"
+                    android:layout_width="130dp"
+                    android:layout_height="35dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="15dp"
+                    android:layout_marginBottom="10dp"
+                    android:background="@drawable/xml_round_button_off_emergency"
+                    android:text="Button"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/black" />
+
+            </LinearLayout>
+        </RelativeLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

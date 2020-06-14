@@ -6,10 +6,11 @@
 
 
 
+    <color name="red_emergency">#E42027</color>
     <color name="yellow">#EBD93C</color>
     <color name="vermelhoEscuro">#6E0106</color>
     <color name="vermelhoClaro">#F5323B</color>
-    <color name="cinza">#999696</color>
+  <color name="cinza">#999696</color>
 
 
 

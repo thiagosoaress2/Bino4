@@ -1,4 +1,4 @@
-package com.bino.bino1;
+package com.bino.bino1.Utils;
 
 import android.content.Context;
 import android.graphics.Bitmap;

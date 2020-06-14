@@ -24,17 +24,6 @@ import android.view.animation.AnimationUtils
 import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import androidx.constraintlayout.widget.ConstraintLayout
-import com.facebook.AccessToken
-import com.facebook.CallbackManager
-import com.facebook.FacebookCallback
-import com.facebook.FacebookException
-import com.facebook.FacebookSdk;
-import com.facebook.appevents.AppEventsLogger;
-import com.facebook.*
-import com.facebook.login.LoginManager
-import com.facebook.login.LoginResult
-import com.facebook.login.widget.LoginButton
-import com.google.firebase.auth.FacebookAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.DatabaseReference
@@ -52,7 +41,7 @@ class MainActivity : AppCompatActivity() {
     //fim das variaveis de login do face
 
     //variaveis de login do face
-    private lateinit var callbackManager: CallbackManager
+    //private lateinit var callbackManager: CallbackManager
 
     var tipoLoginGlobal: String = "nao"
 
@@ -72,9 +61,6 @@ class MainActivity : AppCompatActivity() {
         } else {
             updateUI(currentUser, "unknown")
         }
-
-
-
     }
 
     fun metodosIniciais (){
@@ -110,20 +96,10 @@ class MainActivity : AppCompatActivity() {
             } else {
                 Toast.makeText(this, "Você está sem conexão com a internet.", Toast.LENGTH_SHORT).show()
             }
-
         }
-
 
         //entrou na reforma - nao obsoleto
         LoginWithEmail()
-
-
-
-
-
-
-
-
 
         //remover este código. Obsoleto
         val btnLoginWithMail = findViewById<Button>(R.id.layInicial_btnSignWithEmail)
@@ -134,12 +110,6 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "Você está sem conexão com a internet.", Toast.LENGTH_SHORT).show()
             }
         }
-
-
-
-
-
-
 
         //login do face
 
@@ -155,41 +125,13 @@ class MainActivity : AppCompatActivity() {
             } else {
                 Toast.makeText(this, "Você está sem conexão com a internet.", Toast.LENGTH_SHORT).show()
             }
-
         }
+
 
         val btnLoginGoogle: Button = findViewById(R.id.layInicial_btnLoginGoogle)
         btnLoginGoogle.setOnClickListener {
             Toast.makeText(this, "Em breve", Toast.LENGTH_SHORT).show()
         }
-
-
-
-/*
-        callbackManager = CallbackManager.Factory.create()
-        loginButton.visibility = View.GONE
-        loginButton.setReadPermissions("email", "public_profile")
-       loginButton.registerCallback(callbackManager, object : FacebookCallback<LoginResult> {
-            override fun onError(error: FacebookException?) {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-                updateUI(null, "facebook")
-            }
-
-            override fun onCancel() {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-                updateUI(null, "facebook")
-            }
-
-            override fun onSuccess(loginResult: LoginResult) {
-                //Log.d("teste", "facebook:onSuccess:$loginResult")
-                handleFacebookAccessToken(loginResult.accessToken)
-            }
-
-        })
-
- */
-
-
 
 
 
@@ -209,25 +151,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         LoginWithEmail()
-
-        /* obsoleto
-        val LoginWithMail = findViewById<Button>(R.id.layInicial_btnSignWithEmail)
-        val layInicial = findViewById<ConstraintLayout>(R.id.layInicial)
-        LoginWithMail.setOnClickListener {
-            if (isNetworkAvailable(this)) {
-                LoginWithEmail() //aqui estao os clickes
-                val layLoginMail =
-                    findViewById<ConstraintLayout>(R.id.layLoginWithEmail)  //pagina inicial
-                layLoginMail.visibility = View.VISIBLE
-                layInicial.visibility = View.GONE
-            } else {
-                Toast.makeText(this, "Você está sem conexão com a internet.", Toast.LENGTH_SHORT).show()
-            }
-        }
-
-
-         */
-
     }
 
     private fun createAccount(email: String, password: String) {
@@ -364,7 +287,6 @@ class MainActivity : AppCompatActivity() {
                 //fieldEmail.error = null
             }
 
-
             if (!fieldEmail.text.toString().contains("@")){
                 fieldEmail.error = "E-mail inválido"
                 valid = false
@@ -378,7 +300,6 @@ class MainActivity : AppCompatActivity() {
             } else {
                 //fieldEmail.error = null
             }
-
 
             if (TextUtils.isEmpty(password)) {
                 fieldPassword.error = "Obrigatório"
@@ -403,7 +324,6 @@ class MainActivity : AppCompatActivity() {
                 valid = false
             }
         }
-
         return valid
         EncerraDialog()
     }
@@ -768,46 +688,11 @@ class MainActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
 
         // Pass the activity result back to the Facebook SDK
-        callbackManager.onActivityResult(requestCode, resultCode, data)
+      //  callbackManager.onActivityResult(requestCode, resultCode, data)
     }
     // [END on_activity_result]
 
     // [START auth_with_facebook]
-    private fun handleFacebookAccessToken(token: AccessToken) {
-        //Log.d("testeHandleFacebook", "handleFacebookAccessToken:$token")
-        // [START_EXCLUDE silent]
-        //showProgressDialog()
-        // [END_EXCLUDE]
-
-        val credential = FacebookAuthProvider.getCredential(token.token)
-        auth.signInWithCredential(credential)
-            .addOnCompleteListener(this) { task ->
-                if (task.isSuccessful) {
-                    // Sign in success, update UI with the signed-in user's information
-                    //Log.d("testeHandleFacebook", "signInWithCredential:success")
-                    val user = auth.currentUser
-                    val isNewUser =
-                        task.result!!.additionalUserInfo?.isNewUser
-                    if (isNewUser!!) {
-                        createNewUser()
-                    }
-                    updateUI(user, "facebook")
-                } else {
-                    // If sign in fails, display a message to the user.
-                    Log.w("testeHandleFacebook", "signInWithCredential:failure", task.exception)
-                    Toast.makeText(baseContext, "A autenticação falhou.",
-                        Toast.LENGTH_SHORT).show()
-                    updateUI(null, "null")
-                    //layinicialVoltaAoInicio()
-                    val layInicial : ConstraintLayout = findViewById(R.id.layInicial)
-                    layInicial.visibility = View.VISIBLE
-                }
-
-                // [START_EXCLUDE]
-                //hideProgressDialog()
-                // [END_EXCLUDE]
-            }
-    }
     //fim do login do face
 
     fun LoginWithEmail (){
@@ -987,15 +872,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         //itens da página de criar novo user
-        /*  acho que este click estava repetido e errado. Ele invocava o mesmo botão do metodo abaixo e o botao voltar ja funciona, invocado de dentro do outro botao que chama este layout
-        val btnVoltar = findViewById<Button>(R.id.emailCreateAccountButton)  //btn voltar para a tela de login com email
-        btnVoltar.setOnClickListener {
-            hideKeyboard()
-            layLoginMail.visibility = View.VISIBLE
-            layNovoUser.visibility = View.GONE
-        }
-         */
-
+       
         val emailCreateAccountBtn = findViewById<Button>(R.id.emailCreateAccountButton) //cria usuario
         emailCreateAccountBtn.setOnClickListener {
             hideKeyboard()

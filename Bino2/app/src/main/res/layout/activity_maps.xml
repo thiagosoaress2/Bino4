@@ -88,29 +88,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/btnLogout" />
 
-        <Button
-            android:id="@+id/btnAddPlace"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="AdicionarLugar"
-            app:layout_constraintBottom_toTopOf="@+id/btnLogout"
-            app:layout_constraintStart_toStartOf="parent" />
-
-        <Button
-            android:id="@+id/btnGenerateCode"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Gerar convite"
-            app:layout_constraintBottom_toTopOf="@+id/btnAddPlace"
-            app:layout_constraintStart_toStartOf="parent" />
-
-        <Button
-            android:id="@+id/btnPerfil"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Editar perfil"
-            app:layout_constraintBottom_toTopOf="@+id/btnGenerateCode"
-            app:layout_constraintStart_toStartOf="parent" />
 
         <Button
             android:id="@+id/btnVisibleInvisible"
