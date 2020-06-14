@@ -63,10 +63,8 @@
     //DrawerMenuFooter
     <string name="text_switch_visible">Ficar Visivel</string>
     <string name="text_switch_invisible">Ficar Invisivel</string>
-    <string name="text_login">Deseja entrar no app?</string>
-    <string name="text_logout">Deseja sair do app?</string>
-    <string name="text_login_action">Login</string>
-    <string name="text_logout_action">Logout</string>
+    <string name="text_login_action">Voltar para tela de login</string>
+
 
 
 

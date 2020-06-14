@@ -29,6 +29,7 @@
     android:layout_marginTop="10dp"
     android:orientation="vertical">
     <TextView
+        android:id="@+id/drawer_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Bino Pereira"
@@ -36,12 +37,6 @@
         android:textStyle="bold"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
 
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="17dp"
-        android:text="(83) 12345-6789" />
 </LinearLayout>
 
 </LinearLayout>

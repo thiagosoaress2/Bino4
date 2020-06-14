@@ -132,17 +132,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             }
         }
 
-
-        val textloginUser = findViewById<TextView>(R.id.login_textView_title)
         val textloginUserAction = findViewById<TextView>(R.id.login_textView_action)
 
         textloginUserAction.setOnClickListener {
-
-            if (userMail.equals("semLogin")) {
-
-            } else {
-
-            }
+            finish()
         }
 
         val switch_button_visible = findViewById<Switch>(R.id.switch_button_visible)
@@ -154,16 +147,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             switch_button_visible.setChecked(true)
         }
 
+        textloginUserAction.setText(R.string.text_login_action)
         if (userMail.equals("semLogin")) {
             switch_button_visible.visibility = View.INVISIBLE
             text_view_visible.visibility = View.INVISIBLE
-            textloginUser.setText(R.string.text_login)
-            textloginUserAction.setText(R.string.text_login_action)
         } else {
             switch_button_visible.visibility = View.VISIBLE
             text_view_visible.visibility = View.VISIBLE
-            textloginUser.setText(R.string.text_logout)
-            textloginUserAction.setText(R.string.text_logout_action)
         }
         textloginUserAction.underline()
 
@@ -487,6 +477,20 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                             //if (this@MapsActivity::lastLocation.isInitialized){
                             //  getTheBest()
                             //}
+
+                            val navigationView = findViewById<NavigationView>(R.id.nav_view)
+                            val headerView = navigationView.getHeaderView(0)
+                            val navUsername = headerView.findViewById(R.id.drawer_name) as TextView
+                            navUsername.text = arrayUserInfos.get(1)
+                            val navPhoto = headerView.findViewById(R.id.imageView) as ImageView
+
+                            Glide.with(applicationContext)  //2
+                                .load(arrayUserInfos.get(2)) //3
+                                .centerCrop() //4
+                                .placeholder(R.drawable.perfil) //5
+                                .error(R.drawable.perfil) //6
+                                .fallback(R.drawable.perfil) //7
+                                .into(navPhoto)
 
                             EncerraDialog()
                         }
