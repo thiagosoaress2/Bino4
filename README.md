@@ -13,7 +13,7 @@ Contato
 
 Introdução
 
-De acordo com pesquisa da CNT 2019 65% dos caminhoneiros se sentem inseguros nas estradas. Nosso aplicativo é voltado para estas pessoas.
+De acordo com pesquisa da CNT 2019, 65% dos caminhoneiros se sentem inseguros nas estradas. Nosso aplicativo é voltado para estas pessoas.
 Sendo assim este app quer ser uma solução para este problema.
 
 Uma rede inovadora de caminhoneiros para ajuda, vigilância e colaboração. 
