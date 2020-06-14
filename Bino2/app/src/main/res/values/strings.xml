@@ -11,6 +11,7 @@
 
     //ActivityNames
     <string name="activity_name_emergence">Emergência</string>
+    <string name="activity_name_perfil">Perfil</string>
 
     //DrawerMenu
     <string name="menu_user">Meu Perfil</string>
@@ -18,13 +19,27 @@
     <string name="menu_getHelp">Pedir Ajuda</string>
     <string name="menu_health_user">Minha Saúde</string>
     <string name="menu_new_locations">Novo Local</string>
-    <string name="menu_history_user">Meu Histórico</string>
+    <string name="menu_invited">Gerar Convite</string>
     <string name="menu_settings">Configurações</string>
 
 
     //MessageApp
     <string name="developing">Em breve \nEstamos desenvolvendo!</string>
+    <string name="whatsproblem">Qual o Problema?</string>
     <string name="emergency_user">Ao Acionar esse botão Bino irá fazer ligações para números de emergências que irão vir ao seu soccoro.\n Você pode acioná-lo eo perceber ou estiver em uma situação de risco, como assalto, roubo, acidente ou qualquer outra situação que seja considerada de risco.</string>
+
+
+
+    //MessageHealth
+    <string name="lunch">Ei Pedro, bora almoçar?</string>
+    <string name="fruit">Pedro, já comeu alguma fruta hoje?</string>
+
+    <string name="remedy_pressure">Ei Pedro, lembre do seu remédio de pressão?</string>
+    <string name="fine">Pedro, como vc tá se sentindo hoje?</string>
+    <string name="glasswater">Pedro, que tal um copo de água para refrescar?</string>
+
+    <string name="walking">Ei Pedro, que tal uma caminhada no fim do dia?</string>
+    <string name="legs">Ei Pedro, lembre de esticar as pernas?</string>
 
 
 </resources>

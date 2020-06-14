@@ -24,17 +24,6 @@ import android.view.animation.AnimationUtils
 import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import androidx.constraintlayout.widget.ConstraintLayout
-import com.facebook.AccessToken
-import com.facebook.CallbackManager
-import com.facebook.FacebookCallback
-import com.facebook.FacebookException
-import com.facebook.FacebookSdk;
-import com.facebook.appevents.AppEventsLogger;
-import com.facebook.*
-import com.facebook.login.LoginManager
-import com.facebook.login.LoginResult
-import com.facebook.login.widget.LoginButton
-import com.google.firebase.auth.FacebookAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.DatabaseReference
@@ -52,7 +41,7 @@ class MainActivity : AppCompatActivity() {
     //fim das variaveis de login do face
 
     //variaveis de login do face
-    private lateinit var callbackManager: CallbackManager
+    //private lateinit var callbackManager: CallbackManager
 
     var tipoLoginGlobal: String = "nao"
 
@@ -72,9 +61,6 @@ class MainActivity : AppCompatActivity() {
         } else {
             updateUI(currentUser, "unknown")
         }
-
-
-
     }
 
     fun metodosIniciais (){
@@ -110,20 +96,10 @@ class MainActivity : AppCompatActivity() {
             } else {
                 Toast.makeText(this, "Você está sem conexão com a internet.", Toast.LENGTH_SHORT).show()
             }
-
         }
-
 
         //entrou na reforma - nao obsoleto
         LoginWithEmail()
-
-
-
-
-
-
-
-
 
         //remover este código. Obsoleto
         val btnLoginWithMail = findViewById<Button>(R.id.layInicial_btnSignWithEmail)
@@ -134,12 +110,6 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "Você está sem conexão com a internet.", Toast.LENGTH_SHORT).show()
             }
         }
-
-
-
-
-
-
 
         //login do face
 
@@ -155,10 +125,7 @@ class MainActivity : AppCompatActivity() {
             } else {
                 Toast.makeText(this, "Você está sem conexão com a internet.", Toast.LENGTH_SHORT).show()
             }
-
         }
-
-
 
 /*
         callbackManager = CallbackManager.Factory.create()
@@ -179,13 +146,8 @@ class MainActivity : AppCompatActivity() {
                 //Log.d("teste", "facebook:onSuccess:$loginResult")
                 handleFacebookAccessToken(loginResult.accessToken)
             }
-
         })
-
  */
-
-
-
 
 
     }  //todos os procedimento foram removido de onCreate para acelerar a abertura da activity
@@ -219,10 +181,7 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "Você está sem conexão com a internet.", Toast.LENGTH_SHORT).show()
             }
         }
-
-
          */
-
     }
 
     private fun createAccount(email: String, password: String) {
@@ -359,7 +318,6 @@ class MainActivity : AppCompatActivity() {
                 //fieldEmail.error = null
             }
 
-
             if (!fieldEmail.text.toString().contains("@")){
                 fieldEmail.error = "E-mail inválido"
                 valid = false
@@ -373,7 +331,6 @@ class MainActivity : AppCompatActivity() {
             } else {
                 //fieldEmail.error = null
             }
-
 
             if (TextUtils.isEmpty(password)) {
                 fieldPassword.error = "Obrigatório"
@@ -398,7 +355,6 @@ class MainActivity : AppCompatActivity() {
                 valid = false
             }
         }
-
         return valid
         EncerraDialog()
     }
@@ -763,12 +719,12 @@ class MainActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
 
         // Pass the activity result back to the Facebook SDK
-        callbackManager.onActivityResult(requestCode, resultCode, data)
+      //  callbackManager.onActivityResult(requestCode, resultCode, data)
     }
     // [END on_activity_result]
 
     // [START auth_with_facebook]
-    private fun handleFacebookAccessToken(token: AccessToken) {
+    /*private fun handleFacebookAccessToken(token: AccessToken) {
         //Log.d("testeHandleFacebook", "handleFacebookAccessToken:$token")
         // [START_EXCLUDE silent]
         //showProgressDialog()
@@ -802,7 +758,7 @@ class MainActivity : AppCompatActivity() {
                 //hideProgressDialog()
                 // [END_EXCLUDE]
             }
-    }
+    }*/
     //fim do login do face
 
     fun LoginWithEmail (){

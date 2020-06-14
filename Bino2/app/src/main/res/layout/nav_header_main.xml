@@ -18,7 +18,7 @@
         android:layout_marginTop="10dp"
         android:layout_gravity="center_vertical"
         app:civ_border_color="@android:color/white"
-        android:src="@drawable/avatar_bino" />
+        android:src="@drawable/placeholder_avatar" />
 
 
 <LinearLayout

@@ -44,7 +44,7 @@
             app:layout_constraintEnd_toStartOf="@+id/placesPopup_texto"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/placesPopup_texto"
-            app:srcCompat="@drawable/com_facebook_favicon_blue" />
+             />
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/constraintLayout3"

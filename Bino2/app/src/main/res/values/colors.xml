@@ -5,6 +5,7 @@
     <color name="colorAccent">#03DAC5</color>
 
     <color name="yellow">#E6D439</color>
+    <color name="red_emergency">#E42027</color>
 
     <color name="com_facebook_button_background_color_focused_disabled">#6200EE</color>
     <color name="com_facebook_button_background_color_focused">#6200EE</color>

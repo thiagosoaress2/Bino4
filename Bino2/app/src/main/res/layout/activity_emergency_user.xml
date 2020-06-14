@@ -32,19 +32,24 @@
             android:layout_marginLeft="15dp"
             android:layout_marginRight="15dp" />
 
-        <ImageView
+        <Button
             android:id="@+id/btn_on_emergency"
-            android:layout_margin="20dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/btn_alert"
+            android:layout_marginBottom="20dp"
+            android:layout_marginTop="60dp"
+            android:layout_width="300dp"
+            android:layout_height="80dp"
+            android:text="ACIONAR"
+            android:textSize="30dp"
+            android:textColor="@android:color/white"
+            android:background="@drawable/xml_round_button_on_emergency"
             android:layout_gravity="center_horizontal"/>
 
         <Button
             android:id="@+id/btn_off_emergency"
             android:layout_width="150dp"
             android:layout_height="wrap_content"
-            android:text="DESATIVAR"
+            android:text="Desativar"
+            android:textStyle="bold"
             android:layout_marginTop="10dp"
             android:textColor="@android:color/black"
             android:background="@drawable/xml_round_button_off_emergency"

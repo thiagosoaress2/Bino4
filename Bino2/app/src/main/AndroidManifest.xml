@@ -21,8 +21,8 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-
-        <activity android:name=".MainActivity">
+        <activity android:name=".MainActivity"
+            android:theme="@style/fullScreen">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -37,9 +37,11 @@
 
         <activity android:name=".EmergencyUser"
             android:label="@string/activity_name_emergence"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/AppTheme.ActionBar"/>
 
-        <activity android:name=".perfilActivity"></activity>
+        <activity android:name=".perfilActivity"
+            android:label="@string/activity_name_perfil"
+            android:theme="@style/AppTheme.ActionBar"></activity>
 
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.

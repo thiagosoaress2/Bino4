@@ -26,9 +26,9 @@
             android:icon="@drawable/nav_new_location"
             android:title="@string/menu_new_locations" />
         <item
-            android:id="@+id/nav_historyUser"
-            android:icon="@drawable/nav_history_user"
-            android:title="@string/menu_history_user" />
+            android:id="@+id/nav_invited"
+            android:icon="@drawable/nav_settings"
+            android:title="@string/menu_invited" />
         <item
             android:id="@+id/nav_settings"
             android:icon="@drawable/nav_settings"

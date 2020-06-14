@@ -55,8 +55,8 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 
-    implementation 'com.facebook.android:facebook-login:5.15.3'
-    implementation 'com.facebook.android:facebook-android-sdk:4.42.0'
+    //implementation 'com.facebook.android:facebook-login:5.15.3'
+    //implementation 'com.facebook.android:facebook-android-sdk:4.42.0'
 
     implementation 'com.google.android.gms:play-services-location:17.0.0'
 
