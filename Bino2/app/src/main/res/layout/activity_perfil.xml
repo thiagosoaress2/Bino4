@@ -169,6 +169,8 @@
                     android:layout_marginStart="4dp"
                     android:layout_marginEnd="4dp"
                     android:text=" ?"
+                    android:background="@drawable/xml_rounded_button_branco"
+                    android:elevation="5dp"
                     app:layout_constraintBottom_toBottomOf="@+id/perfil_etNemergencia"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/perfil_etNemergencia"

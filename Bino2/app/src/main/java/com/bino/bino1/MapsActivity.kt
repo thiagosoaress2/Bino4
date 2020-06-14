@@ -610,7 +610,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
                     if (!userMail.equals("semLogin")) {
 
-                        updateUserStatus("online", "aindanao", "nao", "nao")
+                        //updateUserStatus("online", "aindanao", "nao", "nao")
                         findUsersNerby(location.latitude, location.longitude)
                         findPlacesNerby(location.latitude, location.longitude)
                         findHelpRequestNerby(location.latitude, location.longitude)
@@ -689,6 +689,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                         statusUpDateRef.child(userBd).child("nome").setValue(nome)
                         statusUpDateRef.child(userBd).child("pontos").setValue(pontos)
 
+                        getTheBest()
                     } else {
 
                         //remove o user
@@ -828,10 +829,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                     if (dataSnapshot.exists()) {
                         for (querySnapshot in dataSnapshot.children) {
 
-
-                            if (!querySnapshot.key.toString().equals(userBd)) {
-
-
                                 var values: String
                                 var img: String
                                 img = querySnapshot.child("img").value.toString()
@@ -869,20 +866,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                                     //getTheBest() //coloca o user com mais pontos em destaque
                                 }
 
-                                getTheBest()
-
-
-                                //coloca o petFriend no mapa
-                                placeTruckersInMap(
-                                    img,
-                                    values,
-                                    latFriend.toDouble(),
-                                    longFriend.toDouble(), whats, nome
-                                )
-                            }
-
 
                         }
+
+                        getTheBest()
+
                     } else {
                         showToast("Ninguém próximo de você.")
                     }
@@ -1071,47 +1059,40 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         var nomeMaior = "nao"
         var img = "nao"
 
-        Log.d("teste", "tamanho do array " + arrayPontosDosUsersProximos.size)
         while (cont < arrayPontosDosUsersProximos.size) {
             if (cont == 0) {
                 maiorValor = arrayPontosDosUsersProximos.get(cont)
                 nomeMaior = arrayPontosDosUsersProximos.get(cont + 1)
                 whats = arrayPontosDosUsersProximos.get(cont + 2)
                 img = arrayPontosDosUsersProximos.get(cont + 3)
-                while (cont < arrayPontosDosUsersProximos.size) {
-                    if (cont == 0) {
-                        maiorValor = arrayPontosDosUsersProximos.get(cont)
-                        nomeMaior = arrayPontosDosUsersProximos.get(cont + 1)
-                        //whats = arrayPontosDosUsersProximos.get(cont+2)
-                        whats = arrayPontosDosUsersProximos.get(cont + 2)
-                        img = arrayPontosDosUsersProximos.get(cont + 3)
-                        //img = arrayPontosDosUsersProximos.get(cont+3)
+            } else {
+                if (arrayPontosDosUsersProximos.get(cont).toInt() > maiorValor.toInt()) {
+                    maiorValor = arrayPontosDosUsersProximos.get(cont)
+                    nomeMaior = arrayPontosDosUsersProximos.get(cont + 1)
+                    whats = arrayPontosDosUsersProximos.get(cont + 2)
+                    img = arrayPontosDosUsersProximos.get(cont + 3)
 
-                        Log.d("teste", "o valor de nomeMaior é " + nomeMaior)
-
-                    } else {
-
-                        if (arrayPontosDosUsersProximos.get(cont).toInt() > maiorValor.toInt()) {
-                            maiorValor = arrayPontosDosUsersProximos.get(cont)
-                            nomeMaior = arrayPontosDosUsersProximos.get(cont + 1)
-                            whats = arrayPontosDosUsersProximos.get(cont + 2)
-                            img = arrayPontosDosUsersProximos.get(cont + 3)
-                            Log.d("teste", "o valor de nomeMaior é " + nomeMaior)
-
-                        }
-                    }
-                    cont = cont + 4
                 }
+            }
+            cont = cont + 4
+
+        }
 
                 val imageView: ImageView = findViewById(R.id.bestGuiInArea)
                 val textView: TextView = findViewById(R.id.bestGuiInAreaPoints)
+                val lay : ConstraintLayout = findViewById(R.id.bestGuiLayout)
 
-                textView.setText(nomeMaior + "\nPontos: " + maiorValor)
+                if (nomeMaior.equals("nao")){
+                    textView.setText(nomeMaior + "\nPontos: " + maiorValor)
+                } else {
+                    textView.setText(nomeMaior + "\nPontos: " + maiorValor)
+                }
+
 
                 imageView.setOnClickListener {
                     openPopUpTrucker(
                         nomeMaior,
-                        "Voce deseja falar no whatsapp com ele?",
+                        "Deseja falar com ele?",
                         img,
                         whats
                     )
@@ -1145,11 +1126,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                 }
 
                 textView.visibility = View.VISIBLE
+                lay.visibility = View.VISIBLE
 
 
-            }
         }
-    }
+
 
 
     //procura usuarios proximos online
@@ -2948,7 +2929,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                             + whatsapp
                 )
                     .icon(
-                        BitmapDescriptorFactory.fromResource(R.drawable.ccr)
+                        BitmapDescriptorFactory.fromResource(R.drawable.ajudamecanica)
                     )
             )
 
@@ -2963,7 +2944,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                             + whatsapp
                 )
                     .icon(
-                        BitmapDescriptorFactory.fromResource(R.drawable.ccr)
+                        BitmapDescriptorFactory.fromResource(R.drawable.ajudaoutros)
                     )
             )
 
@@ -2978,7 +2959,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                             + whatsapp
                 )
                     .icon(
-                        BitmapDescriptorFactory.fromResource(R.drawable.ccr)
+                        BitmapDescriptorFactory.fromResource(R.drawable.ajudapneu)
                     )
             )
 
@@ -2993,7 +2974,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                             + whatsapp
                 )
                     .icon(
-                        BitmapDescriptorFactory.fromResource(R.drawable.ccr)
+                        BitmapDescriptorFactory.fromResource(R.drawable.ajudaemergencia)
                     )
             )
 
@@ -3041,7 +3022,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         }
 
         if (pontos.toInt()<45){
-            openPopUp("Olá!", "Você sabia que pode ganhar pontos preenchendo seu perfil?", true, "Ver perfil", "Fechar", total)
+            openPopUp("Olá!", "Ganhe pontos preenchendo o perfil!", true, "Ver perfil", "Fechar", total)
         }
 
 

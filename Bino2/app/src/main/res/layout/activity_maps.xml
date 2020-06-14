@@ -27,55 +27,35 @@
 
 
 
-        <ImageView
-            android:id="@+id/bestGuiInArea"
-            android:layout_width="55dp"
-            android:layout_height="55dp"
-            android:layout_marginTop="60dp"
-            android:visibility="gone"
-            app:layout_constraintEnd_toEndOf="@+id/bestGuiInAreaPoints"
-            app:layout_constraintStart_toStartOf="@+id/bestGuiInAreaPoints"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:srcCompat="@tools:sample/avatars" />
-
-        <TextView
-            android:id="@+id/bestGuiInAreaPoints"
-            android:layout_width="wrap_content"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/bestGuiLayout"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="8dp"
-            android:text="TextView"
-            android:visibility="gone"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/bestGuiInArea" />
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="200dp"
-            android:layout_height="200dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
-            android:layout_marginStart="50dp"
+            android:layout_marginStart="40dp"
             android:background="@drawable/xml_rounded_button_branco"
-            app:layout_constraintBottom_toBottomOf="@+id/imageView4"
-            app:layout_constraintHeight_percent="0.07"
-            app:layout_constraintStart_toStartOf="@+id/imageView4"
-            app:layout_constraintTop_toTopOf="@+id/imageView4">
+            app:layout_constraintBottom_toBottomOf="@+id/bestGuiInArea"
+            app:layout_constraintStart_toStartOf="@+id/bestGuiInArea"
+            app:layout_constraintTop_toTopOf="@+id/bestGuiInArea">
 
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <ImageView
-            android:id="@+id/imageView4"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            app:srcCompat="@drawable/perfil"
-            tools:layout_editor_absoluteY="8dp" />
+            <TextView
+                android:id="@+id/bestGuiInAreaPoints"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginEnd="4dp"
+                android:layout_marginBottom="4dp"
+                android:elevation="17dp"
+                android:paddingStart="19dp"
+                android:text="TextView"
+                android:textAlignment="center"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.4"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:visibility="visible" />
 
 
 
