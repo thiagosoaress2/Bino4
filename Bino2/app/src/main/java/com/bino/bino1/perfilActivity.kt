@@ -1,6 +1,7 @@
 package com.bino.bino1
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.*
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -10,6 +11,8 @@ import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
+import android.text.Editable
+import android.text.TextWatcher
 import android.transition.Slide
 import android.transition.TransitionManager
 import android.view.Gravity
@@ -21,9 +24,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.bino.bino1.Utils.dateMask
+import com.bino.bino1.Utils.SharePreferences
 import com.bumptech.glide.Glide
 import com.google.android.gms.tasks.Continuation
 import com.google.android.gms.tasks.Task
@@ -47,10 +48,16 @@ class perfilActivity : AppCompatActivity() {
 
     var userBd = "nao"
 
+    var pontos = 0
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_perfil)
+
+        metodosIniciais()
+
+        pontos = SharePreferences.getPoints(this)
 
         queryInfosExtras()
 
@@ -99,7 +106,6 @@ class perfilActivity : AppCompatActivity() {
 
         databaseReference = FirebaseDatabase.getInstance().reference
 
-        metodosIniciais()
 
         val etNemergencia: EditText = findViewById(R.id.perfil_etNemergencia)
         val country2 = PhoneNumberFormatType.PT_BR // OR PhoneNumberFormatType.PT_BR
@@ -115,11 +121,27 @@ class perfilActivity : AppCompatActivity() {
         }
         val imageView: ImageView = findViewById(R.id.perfil_imageView)
         if (!img.equals("nao")) {
-            Glide.with(this).load(img).into(imageView)
+
+            Glide.with(this)
+                .load(img)
+                .thumbnail(0.7f)
+                .skipMemoryCache(true)
+                .transform(CircleTransform(this)) // applying the image transformer
+                .into(imageView)
+
+        } else {
+
+            Glide.with(applicationContext)
+                .load(R.drawable.perfil)
+                .thumbnail(0.7f)
+                .skipMemoryCache(true)
+                .transform(CircleTransform(this)) // applying the image transformer
+                .into(imageView)
+
         }
 
         val etNascimento: EditText = findViewById(R.id.perfil_etNascimento)
-        etNascimento.dateMask(etNascimento.text.toString())
+        dateWatcher(etNascimento)
 
         val etNwhatsapp: EditText = findViewById(R.id.perfil_etNwhatsapp)
         //textWatcher para formatar em máscara de telefone
@@ -150,18 +172,35 @@ class perfilActivity : AppCompatActivity() {
 
             if (!urifinal.equals("nao")) {
                 databaseReference.child("usuarios").child(userBd).child("img").setValue(urifinal)
+                if (img.equals("nao")){
+                    //significa que é a primeira foto que ele upa
+                    updateUserPoints(25)
+                }
+
             }
             if (!etNemergencia.text.equals(nEmergencia) && !etNemergencia.text.isEmpty()) {
                 databaseReference.child("usuarios").child(userBd).child("nEmergencia")
                     .setValue(etNemergencia.text.toString())
+                if (nEmergencia.equals("nao")){
+                    updateUserPoints(20)
+                }
+
             }
             if (!etNome.text.equals(nome) && !etNome.text.isEmpty()) {
                 databaseReference.child("usuarios").child(userBd).child("nome")
                     .setValue(etNome.text.toString())
+                if (nome.equals("nao")){
+                    updateUserPoints(10)
+                }
+
             }
             if (!etNwhatsapp.equals(whatsapp) && !etNwhatsapp.text.isEmpty()) {
                 databaseReference.child("usuarios").child(userBd).child("whatsapp")
                     .setValue(etNwhatsapp.text.toString())
+                if (whatsapp.equals("nao")){
+                    updateUserPoints(15)
+                }
+
             }
 
             val etNascimento: EditText = findViewById(R.id.perfil_etNascimento)
@@ -192,6 +231,8 @@ class perfilActivity : AppCompatActivity() {
     }
 
     fun queryInfosExtras() {
+
+        databaseReference = FirebaseDatabase.getInstance().reference
 
         ChamaDialog()
     val rootRef = databaseReference.child("usuarios").child(userBd)
@@ -242,7 +283,73 @@ class perfilActivity : AppCompatActivity() {
 
 }
 
+    fun dateWatcher( editText:EditText) {
 
+        var oldString : String = ""
+
+        editText.addTextChangedListener(object : TextWatcher {
+            var changed: Boolean = false
+
+            override fun afterTextChanged(p0: Editable?) {
+
+                changed = false
+
+
+
+            }
+
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int)
+            {
+                //changed=false
+                editText.setSelection(p0.toString().length)
+            }
+
+            @SuppressLint("SetTextI18n")
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+
+                var str: String = p0.toString()
+
+                if (str != null) {
+
+                    if (oldString.equals(str)) {
+                        //significs que o user esta apagando
+                        //do Nothing
+
+                    } else if (str.length == 2) {  //  xx
+                        var element0: String = str.elementAt(0).toString()
+                        var element1: String = str.elementAt(1).toString()
+                        str = element0 + element1 + "/"
+                        editText.setText(str)
+                        oldString = element0 + element1
+                        editText.setSelection(str.length)
+
+                    } else if (str.length == 5) { //  xx/xx
+
+                        var element0: String = str.elementAt(0).toString() //x
+                        var element1: String = str.elementAt(1).toString() //-x
+                        var element2: String = str.elementAt(2).toString() //--/
+                        var element3: String = str.elementAt(3).toString() //--/x
+                        var element4: String = str.elementAt(4).toString() //--/-x
+
+                        str = element0 + element1 + element2 + element3 + element4 + "/"
+                        editText.setText(str)
+                        oldString = element0 + element1 + element2 + element3 + element4
+                        editText.setSelection(str.length)
+
+                    } else if (str.length > 10) { // este exemplo é para data no formato xx/xx/xx. Se você quer usar xx/xx/xxxx mudar para if (str.length >10). O resto do código permanece o mesmo.
+
+                        str = str.substring(0, str.length - 1)
+                        editText.setText(str)
+                        editText.setSelection(str.length)
+
+                    }
+
+
+                }
+
+            }
+        })
+    }
 
     //upload de foto
     fun openPopUp2 (titulo: String, texto:String, exibeBtnOpcoes:Boolean, btnSim: String, btnNao: String, call: String) {
@@ -793,11 +900,6 @@ class perfilActivity : AppCompatActivity() {
 
 
 
-
-    fun EditText.dateMask(mask: String) {
-        addTextChangedListener(dateMask(this, mask))}
-
-
     fun openPopUp (titulo: String, texto:String, exibeBtnOpcoes:Boolean, btnSim: String, btnNao: String) {
         //exibeBtnOpcoes - se for não, vai exibir apenas o botão com OK, sem opção. Senão, exibe dois botões e pega os textos deles de btnSim e btnNao
 
@@ -896,6 +998,14 @@ class perfilActivity : AppCompatActivity() {
             0, // X offset
             0 // Y offset
         )
+
+    }
+
+    fun updateUserPoints(pontosNovos: Int){
+
+        pontos = pontos.toInt()+pontosNovos
+        SharePreferences.setPoints(this, pontos.toInt())
+        Toast.makeText(this, "Parabens! você ganhou "+pontosNovos.toString(), Toast.LENGTH_SHORT).show()
 
     }
 

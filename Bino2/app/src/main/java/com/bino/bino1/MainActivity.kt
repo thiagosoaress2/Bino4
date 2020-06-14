@@ -1103,6 +1103,7 @@ class MainActivity : AppCompatActivity() {
         newCad.child("nEmergencia").setValue("nao")
         newCad.child("nome").setValue("nao")
         newCad.child("whatsapp").setValue("nao")
+        newCad.child("pontos").setValue("0")
     }
 
     //por fim, pegue o retorno dos métodos aqui

@@ -31,6 +31,7 @@ import androidx.core.content.ContextCompat
 
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
+import com.bino.bino1.Utils.SharePreferences
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.CustomTarget
@@ -51,11 +52,10 @@ import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.gms.tasks.Task
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.navigation.NavigationView
-import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
+import kotlinx.android.synthetic.main.activity_maps.*
 
-import kotlinx.android.synthetic.main.activity_menu.*
 import java.io.IOException
 
 import java.util.*
@@ -80,8 +80,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
     val arrayPlacesNerby: MutableList<Marker> = ArrayList()
 
     val arrayUserInfos: MutableList<String> = ArrayList()
+    val arrayPontosDosUsersProximos: MutableList<String> = ArrayList()
 
     var userIsVisibile = true
+
+    var pontos = "0"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -99,6 +102,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         //recupera o email do usuário
         userMail = intent.getStringExtra("email")
 
+        pontos = SharePreferences.getPoints(this).toString()
+        updateUserPoints(0)
 
         if (!requestPermission()){
             requestThePermission()
@@ -268,11 +273,27 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                             values = querySnapshot.child("whatsapp").value.toString()
                             arrayUserInfos.add(values)
 
+                            pontos = querySnapshot.child("pontos").value.toString()
+                            val pontosProvi = SharePreferences.getPoints(this@MapsActivity)
+                            if (pontosProvi > pontos.toInt()){
+                                pontos =pontosProvi.toString()//atualiza o valor para o maior
+                                updateUserPointsToBd(pontos) //se o que tem no shared é maior, atualizar o bd
+
+                            } else {
+                                updateUserPoints(0)  //se for menor ou igual continuar usando os pontos que estão no shared
+                            }
+
+                            //avisa pra preencher o perfil
+                            if (pontos.toInt()<45){
+                                openPopUp("Olá!", "Você sabia que pode ganhar pontos preenchendo seu perfil?", true, "Preencher perfil", "Fechar")
+                            }
+
                             values = querySnapshot.child("code").value.toString()
                             if (values.equals("nao")){
                                 verificaCode()
                             } else {
                                 updateUserStatus("online", arrayUserInfos.get(2).toString())
+                                //getTheBest()
                             }
 
                             /*
@@ -285,7 +306,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
                              */
 
-
+                            //if (this@MapsActivity::lastLocation.isInitialized){
+                              //  getTheBest()
+                            //}
 
                             EncerraDialog()
 
@@ -514,8 +537,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                         statusUpDateRef.child(userBd).child("img").setValue(img)
                         statusUpDateRef.child(userBd).child("lat").setValue(lat)
                         statusUpDateRef.child(userBd).child("long").setValue(long)
-                        statusUpDateRef.child(userBd).child("whats").setValue(arrayUserInfos.get(1))
-                        statusUpDateRef.child(userBd).child("nome").setValue(arrayUserInfos.get(5))
+                        statusUpDateRef.child(userBd).child("whats").setValue(arrayUserInfos.get(5))
+                        statusUpDateRef.child(userBd).child("nome").setValue(arrayUserInfos.get(1))
+                        statusUpDateRef.child(userBd).child("pontos").setValue(pontos)
 
                     } else {
 
@@ -665,7 +689,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                     if (dataSnapshot.exists()) {
                         for (querySnapshot in dataSnapshot.children) {
 
-                            if (!querySnapshot.key.toString().equals(userBd)){
+
                                 var values: String
                                 var img: String
                                 img = querySnapshot.child("img").value.toString()
@@ -675,14 +699,34 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                                 val whats = querySnapshot.child("whats").value.toString()
                                 val nome = querySnapshot.child("nome").value.toString()
 
-                                Log.d("teste", "nome na query usersNerby é "+nome)
-                                Log.d("teste", "whats na query usersNerby é "+whats)
+                                val pontos = querySnapshot.child("pontos").value.toString()
+                                arrayPontosDosUsersProximos.add(pontos)
+                                arrayPontosDosUsersProximos.add(nome)
+                                arrayPontosDosUsersProximos.add(whats)
+                                arrayPontosDosUsersProximos.add(img)
+                                /*
+                                pos 0 - pontos
+                                pos 1 - nome
+                                pos 2 - bd
+                                pos 3 - img
+                                 */
 
-                                //coloca o petFriend no mapa
-                                placeTruckersInMap(img, values, latFriend.toDouble(), longFriend.toDouble(), whats, nome)
 
+                                if (!querySnapshot.key.toString().equals(userBd)) { //se for o proprio usuario nao colocar no mapa com icone.
+                                    //coloca o petFriend no mapa
+                                    placeTruckersInMap(
+                                        img,
+                                        values,
+                                        latFriend.toDouble(),
+                                        longFriend.toDouble(),
+                                        whats,
+                                        nome
+                                    )
+                                    //getTheBest() //coloca o user com mais pontos em destaque
+                                }
 
-                            }
+                            getTheBest()
+
                         }
                     } else {
                         showToast("Ninguém próximo de você.")
@@ -707,15 +751,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
         val latLng = LatLng(lat, long)
 
-        //val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("trucker!?!"+bdTrucker+delim
-        // +img+delim
-        // +latLng))
-        //arrayTruckersNerby.add(mark1)
-
-        //mark1.tag=0
-
-        //mMap.setOnMarkerClickListener(this)
-
         var img2 = "nao"
         var bitmapFinal : Bitmap?
 
@@ -735,11 +770,58 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         if (img.equals("nao")){  //se nao tem foto exibe somente o pin
             //img2 = "https://firebasestorage.googleapis.com/v0/b/store-2fa27.appspot.com/o/avatar.jpg?alt=media&token=7cc4587a-c99f-4017-b14b-09ecf7910729"
 
-            //val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("trucker!?!"+bdTrucker+delim
-            // +img+delim
-            // +latLng+delim
-            // +whatsapp+delim
-            // +nome).icon(BitmapDescriptorFactory.fromResource(R.drawable.placeholdersmall)))
+            Glide.with(this)
+                .asBitmap()
+                .load(R.drawable.perfil)
+                .apply(RequestOptions().override(withPercent, heigthPercent))
+                .apply(RequestOptions.circleCropTransform())
+                .into(object : CustomTarget<Bitmap>() {
+                    override fun onResourceReady(
+                        resource: Bitmap,
+                        transition: Transition<in Bitmap>?
+                    ) {
+
+                        val bit = BitmapFactory.decodeResource(
+                            this@MapsActivity.getResources(),
+                            R.drawable.placeholder
+                        )
+
+                        bitmapFinal = createUserBitmapFinalJustRound(
+                            resource,
+                            bit
+                        )  //here we will insert the bitmap we got with the link in a placehold with white border.
+
+                        Log.d("teste", "Em placetrukersInMap whastapp é "+whatsapp)
+                        Log.d("teste", "Em placetrukersInMap nome  é "+nome)
+                        //val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("trucker!?!"+bdTrucker+delim
+                        // +img2+delim
+                        // +latLng+delim
+                        // +whatsapp+delim
+                        // +nome)
+                        val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("trucker!?!"+bdTrucker+delim
+                                +nome+delim
+                                +whatsapp+delim+img2+delim)
+                            .icon(
+                                BitmapDescriptorFactory.fromBitmap(bitmapFinal)
+                            )
+                        )
+                        arrayTruckersNerby.add(mark1)
+
+                        mark1.tag = 0
+
+                        mMap.setOnMarkerClickListener(this@MapsActivity)
+
+                    }
+
+                    override fun onLoadCleared(placeholder: Drawable?) {
+                        // this is called when imageView is cleared on lifecycle call or for
+                        // some other reason.
+                        // if you are referencing the bitmap somewhere else too other than this imageView
+                        // clear it here as you can no longer have the bitmap
+                    }
+                })
+
+            /*
             val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("trucker!?!"+bdTrucker+delim+nome+delim +whatsapp+img+delim).icon(BitmapDescriptorFactory.fromResource(R.drawable.placeholdersmall)))
             arrayTruckersNerby.add(mark1)
 
@@ -748,11 +830,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             mMap.setOnMarkerClickListener(this)
 
 
+             */
+
         } else {
 
             img2 = img
 
-            Glide.with(this)
+            Glide.with(this@MapsActivity)
                 .asBitmap()
                 .load(img2)
                 .apply(RequestOptions().override(withPercent, heigthPercent))
@@ -829,7 +913,79 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
          */
     }
 
+    fun getTheBest(){
 
+        /*
+                                pos 0 - pontos
+                                pos 1 - nome
+                                pos 2 - whats
+                                pos 3 - img
+                                 */
+
+        var cont=0
+        var maiorValor = "0"
+        var whats = "nao"
+        var nomeMaior = "nao"
+        var img = "nao"
+        Log.d("teste", "tamanho do array "+arrayPontosDosUsersProximos.size)
+        while (cont<arrayPontosDosUsersProximos.size){
+            if (cont==0){
+                maiorValor = arrayPontosDosUsersProximos.get(cont)
+                nomeMaior = arrayPontosDosUsersProximos.get(cont+1)
+                whats = arrayPontosDosUsersProximos.get(cont+2)
+                img = arrayPontosDosUsersProximos.get(cont+3)
+            } else {
+
+                if (arrayPontosDosUsersProximos.get(cont).toInt()>maiorValor.toInt()){
+                    maiorValor = arrayPontosDosUsersProximos.get(cont)
+                    nomeMaior = arrayPontosDosUsersProximos.get(cont+1)
+                    whats = arrayPontosDosUsersProximos.get(cont+2)
+                    img = arrayPontosDosUsersProximos.get(cont+3)
+                }
+            }
+            cont=cont+4
+        }
+
+        val imageView: ImageView = findViewById(R.id.bestGuiInArea)
+        val textView: TextView = findViewById(R.id.bestGuiInAreaPoints)
+
+        textView.setText(nomeMaior+"\nPontos: "+maiorValor)
+
+        imageView.setOnClickListener {
+            openPopUpTrucker(nomeMaior, "Voce deseja falar no whatsapp com ele?", img, whats)
+        }
+        showToast("Parabéns! Você é o caminhoneiro com mais pontos do local e todo mundo está sabendo disto!")
+
+        if (img.equals("nao")){
+            imageView.visibility = View.VISIBLE
+            try {
+                Glide.with(applicationContext)
+                    .load(R.drawable.perfil)
+                    .thumbnail(0.7f)
+                    .skipMemoryCache(true)
+                    .transform(CircleTransform(this)) // applying the image transformer
+                    .into(imageView)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        } else {
+            imageView.visibility = View.VISIBLE
+            try {
+                Glide.with(applicationContext)
+                    .load(img)
+                    .thumbnail(0.7f)
+                    .skipMemoryCache(true)
+                    .transform(CircleTransform(this)) // applying the image transformer
+                    .into(imageView)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
+        textView.visibility = View.VISIBLE
+
+
+    }
 
 
 
@@ -1126,7 +1282,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                 //abrir popup
                 //openPopUp("Chamar este caminhoneiro?", "Você deseja abrir o whatsapp?", true, "Sim, abrir", "Não", "trucker", bdDoUser)
 
-                openPopUpTrucker(nome, "Voce deseja falar no whatsapp com ele?", bdDoUser, img, whats)
+                openPopUpTrucker(nome, "Voce deseja falar no whatsapp com ele?", img, whats)
 
             } else if (bd.contains("place!?!")){
 
@@ -1141,7 +1297,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                 val nome = tokens.nextToken() // this will contain "nome"
                 val avaliacoes = tokens.nextToken() // this will contain "avaliacoes"
 
-                openPopUpPlaces(nome, "texto aqui", true, "Avaliar", "Fechar", "places", bdDoPlace, custo, nota.toDouble(), tipo, avaliacoes)
+                openPopUpPlaces(nome, "Veja abaixo as avaliações de outros caminhoneiros", true, "Avaliar", "Fechar", "places", bdDoPlace, custo, nota.toDouble(), tipo, avaliacoes)
                 //("place!?!"+bd+delim
                 // +latLng+delim
                 // +custo+delim
@@ -1160,7 +1316,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
 
     //Abre a popup
-    fun openPopUp (titulo: String, texto:String, exibeBtnOpcoes:Boolean, btnSim: String, btnNao: String, call: String, bd: String) {
+    fun openPopUp (titulo: String, texto:String, exibeBtnOpcoes:Boolean, btnSim: String, btnNao: String) {
         //exibeBtnOpcoes - se for não, vai exibir apenas o botão com OK, sem opção. Senão, exibe dois botões e pega os textos deles de btnSim e btnNao
 
         //EXIBIR POPUP
@@ -1237,6 +1393,20 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
         }
 
+        buttonPopupS.setOnClickListener {
+
+            val intent = Intent(this, perfilActivity::class.java)
+            intent.putExtra("nEmergencia", arrayUserInfos.get(0))
+            intent.putExtra("nome", arrayUserInfos.get(1))
+            intent.putExtra("img", arrayUserInfos.get(2))
+            intent.putExtra("userBd", arrayUserInfos.get(3))
+            intent.putExtra("whastapp", arrayUserInfos.get(5))
+
+            startActivity(intent)
+
+            popupWindow.dismiss()
+        }
+
         txtTitulo.text = titulo
         txtTexto.text = texto
 
@@ -1259,17 +1429,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             0 // Y offset
         )
 
-        //aqui colocamos os ifs com cada call de cada vez que a popup for chamada
-        if (call.equals("trucker")) {
-            //abrir Whatsapp
-            Toast.makeText(this, "Funcionou", Toast.LENGTH_SHORT).show()
-        }
 
     }
 
     //abre popup exclusiva do caminhoneiro. USada quando clica no simbolo no mapa
 
-    fun openPopUpTrucker (nome: String, texto:String, bd: String, img: String, whatsapp: String) {
+    fun openPopUpTrucker (nome: String, texto:String, img: String, whatsapp: String) {
         //exibeBtnOpcoes - se for não, vai exibir apenas o botão com OK, sem opção. Senão, exibe dois botões e pega os textos deles de btnSim e btnNao
 
         //EXIBIR POPUP
@@ -1772,7 +1937,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                     databaseReference.child("places").child(bd).child("nota").setValue(novaNota.toInt())
                     databaseReference.child("places").child(bd).child("custo").setValue(currencyTranslation(novoCusto))
                     databaseReference.child("places").child(bd).child("avaliacoes").setValue(avaliacoes.toInt()+1)
-                    showToast("Você avaliou este lugar. Agora seus amigos poderão saber o que você achou.")
+                    showToast("Pronto. Você ajudou a comunidade de caminhoneiros.")
+                    updateUserPoints(10)
                     popupWindow.dismiss()
                 }
 
@@ -2021,12 +2187,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
     }
 
 
-
-
-
-
-
-
+    override fun onStart() {
+        super.onStart()
+        updateUserPoints(0)
+    }
 
     //métodos de busca de enderço a partir de Latitude e Longitude ou o contrário
     //private fun getAddress(latLng: LatLng): String {
@@ -2298,6 +2462,28 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             }
         }
     }
+
+    fun updateUserPointsToBd(pontos: String){
+        val textView: TextView = findViewById(R.id.tvPontos)
+        textView.setText("Seus pontos: "+pontos)
+
+        databaseReference.child("usuarios").child(userBd).child("pontos").setValue(pontos)
+
+    }
+
+    fun updateUserPoints(novosPontos:Int){
+
+        //se for 0 é apenas para atualizar no sharedPrefs.
+        if (novosPontos!=0){
+            pontos = (pontos.toInt()+novosPontos).toString()
+            showToast("Parabéns! Você ganhou "+novosPontos+" pontos")
+        }
+        SharePreferences.setPoints(this, pontos.toInt())
+        val textView: TextView = findViewById(R.id.tvPontos)
+        textView.setText("Seus pontos: "+pontos)
+
+    }
+
 
     fun showToast(message: String){
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
