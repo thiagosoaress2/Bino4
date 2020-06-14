@@ -11,6 +11,10 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import com.bino.bino1.Utils.SharePreferences;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
+import java.sql.Ref;
 
 public class EmergencyUser extends AppCompatActivity {
 
@@ -31,6 +35,8 @@ public class EmergencyUser extends AppCompatActivity {
         String lat = bundle.getString("lat");
         String lng = bundle.getString("lng");
         String address = bundle.getString("address");
+        String whats = bundle.getString("whats");
+        String userBd = bundle.getString("userBd");
 
         onEmergency = findViewById(R.id.btn_on_emergency);
         offEmergency = findViewById(R.id.btn_off_emergency);
@@ -40,14 +46,14 @@ public class EmergencyUser extends AppCompatActivity {
         onEmergency.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                actionButtons(true, name, lat, lng, address);
+                actionButtons(true, name, lat, lng, address, whats, userBd);
             }
         });
 
         offEmergency.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                actionButtons(false,"","","","");
+                actionButtons(false,"","","","", "", "");
             }
         });
     }
@@ -71,16 +77,18 @@ public class EmergencyUser extends AppCompatActivity {
         }
     }
 
-    public void actionButtons(boolean emergency, String name, String lat, String lng,  String address){
+    public void actionButtons(boolean emergency, String name, String lat, String lng,  String address, String whats, String userBd){
         if(emergency){
             SharePreferences.setEmergency(getApplicationContext(), true);
             onEmergency.setVisibility(View.INVISIBLE);
             offEmergency.setVisibility(View.VISIBLE);
-            callWhatsapp("021969384620", name, lat, lng, address);
+            callWhatsapp(whats, name, lat, lng, address);
+            sendHelpRequest("online", "nao", whats, name, "emergencia", lat, lng, userBd);
         }else{
             SharePreferences.setEmergency(getApplicationContext(), false);
             onEmergency.setVisibility(View.VISIBLE);
             offEmergency.setVisibility(View.INVISIBLE);
+            sendHelpRequest("encerrar", "nao", whats, name, "emergencia", lat, lng, userBd);
         }
     }
 
@@ -117,5 +125,40 @@ private void callWhatsapp(String phone, String name, String lat, String lng,  St
             app_installed = false;
         }
         return app_installed;
+    }
+
+    private void sendHelpRequest(String state, String img, String whatsapp, String nome, String request, String lat, String lng, String userBd) {
+
+
+
+                    //lastLocation = location
+
+                    //val lat = lastLocation.latitude
+                    //val long = lastLocation.longitude
+                    DatabaseReference databaseReference;
+                    databaseReference = FirebaseDatabase.getInstance().getReference();
+                    DatabaseReference statusUpDateRef = databaseReference.child("pedidosAjuda");
+
+                    if (state.equals("online")) {
+
+                        //coloca o user online
+                        statusUpDateRef.child(userBd).child("latlong").setValue(lat + lng);
+                        statusUpDateRef.child(userBd).child("img").setValue("nao");
+                        statusUpDateRef.child(userBd).child("lat").setValue(lat);
+                        statusUpDateRef.child(userBd).child("long").setValue(lng);
+                        //statusUpDateRef.child(userBd).child("whats").setValue(arrayUserInfos.get(5))
+                        //statusUpDateRef.child(userBd).child("nome").setValue(arrayUserInfos.get(1))
+                        statusUpDateRef.child(userBd).child("whats").setValue(whatsapp);
+                        statusUpDateRef.child(userBd).child("nome").setValue(nome);
+                        statusUpDateRef.child(userBd).child("request").setValue(request);
+                        Toast.makeText(this, "Seu pedido de ajuda foi lançado todas as pessoas próximas foram avisadas", Toast.LENGTH_SHORT).show();
+
+                    } else {
+
+                        //remove o user
+                        statusUpDateRef.child(userBd).removeValue();
+                    }
+
+
     }
 }
