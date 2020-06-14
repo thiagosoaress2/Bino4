@@ -407,6 +407,11 @@ class perfilActivity : AppCompatActivity() {
         val buttonPopupOk = view.findViewById<Button>(R.id.popupBtnOk)
         val txtTitulo = view.findViewById<TextView>(R.id.popupTitulo)
         val txtTexto = view.findViewById<TextView>(R.id.popupTexto)
+        val progressbar = view.findViewById<ProgressBar>(R.id.progressBar)
+        val txBarra = view.findViewById<TextView>(R.id.popupMsg)
+
+        txBarra.visibility = View.GONE
+        progressbar.visibility = View.GONE
 
 
         if (exibeBtnOpcoes){
@@ -535,7 +540,15 @@ class perfilActivity : AppCompatActivity() {
 
         //image provisoria pode ser colocada no imageview pois já é pequena suficiente.
         val imageviewBanne:ImageView = findViewById(R.id.perfil_imageView)
-        imageviewBanne.setImageBitmap(imageProvisoria)
+        //imageviewBanne.setImageBitmap(imageProvisoria)
+        Glide.with(applicationContext)  //2
+            .load(imageProvisoria) //3
+            .centerCrop() //4
+            .placeholder(R.drawable.perfil) //5
+            .error(R.drawable.perfil) //6
+            .fallback(R.drawable.perfil) //7
+            .into(imageviewBanne)
+
 
 //esta parte é do método antigo. Imagino que ele nao tenha função mais
         val baos = ByteArrayOutputStream()
@@ -959,7 +972,11 @@ class perfilActivity : AppCompatActivity() {
         val buttonPopupOk = view.findViewById<Button>(R.id.popupBtnOk)
         val txtTitulo = view.findViewById<TextView>(R.id.popupTitulo)
         val txtTexto = view.findViewById<TextView>(R.id.popupTexto)
+        val progressbar = view.findViewById<ProgressBar>(R.id.progressBar)
+        val txBarra = view.findViewById<TextView>(R.id.popupMsg)
 
+        txBarra.visibility = View.GONE
+        progressbar.visibility = View.GONE
 
         if (exibeBtnOpcoes){
             //vai exibir os botões com textos e esconder o btn ok

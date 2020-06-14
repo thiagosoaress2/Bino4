@@ -595,7 +595,8 @@ class MainActivity : AppCompatActivity() {
         val buttonPopupOk = view.findViewById<Button>(R.id.popupBtnOk)
         val txtTitulo = view.findViewById<TextView>(R.id.popupTitulo)
         val txtTexto = view.findViewById<TextView>(R.id.popupTexto)
-
+        val progressbar = view.findViewById<ProgressBar>(R.id.progressBar)
+        val txBarra = view.findViewById<TextView>(R.id.popupMsg)
 
         if (exibeBtnOpcoes){
             //vai exibir os botões com textos e esconder o btn ok
