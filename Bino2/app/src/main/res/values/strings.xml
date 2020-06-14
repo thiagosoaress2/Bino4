@@ -60,6 +60,17 @@
     <string name="menu_invited">Gerar Convite</string>
     <string name="menu_settings">Configurações</string>
 
+    //DrawerMenuFooter
+    <string name="text_switch_visible">Ficar Visivel</string>
+    <string name="text_switch_invisible">Ficar Invisivel</string>
+    <string name="text_login">Deseja entrar no app?</string>
+    <string name="text_logout">Deseja sair do app?</string>
+    <string name="text_login_action">Login</string>
+    <string name="text_logout_action">Logout</string>
+
+
+
+
 
     //MessageApp
     <string name="developing">Em breve \nEstamos desenvolvendo!</string>

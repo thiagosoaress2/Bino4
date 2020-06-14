@@ -116,13 +116,70 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             callEmergency()
         })
 
-/*        val toggle_button = findViewById<ToggleButton>(R.id.toggleBtnVisible)
-        toggle_button.setOnCheckedChangeListener { buttonView, isChecked ->
-            if (isChecked) {
+
+        if (userMail.equals("semLogin")) {
+            showToast("Você precisa estar logado para fazer isso")
+        } else {
+
+            if (userIsVisibile) {
+                updateUserStatus("offline", "null")
+                showToast("Você está invisivel")
+                btnVisibleInvisible.setText("Ficar visível")
+            } else {
+                //updateUserStatus("online", arrayUserInfos.get(2).toString())
+                showToast("Você está visível")
+                btnVisibleInvisible.setText("Ficar invisivel")
+            }
+        }
+
+
+        val textloginUser = findViewById<TextView>(R.id.login_textView_title)
+        val textloginUserAction = findViewById<TextView>(R.id.login_textView_action)
+
+        textloginUserAction.setOnClickListener {
+
+            if (userMail.equals("semLogin")) {
+
             } else {
 
             }
-        }*/
+        }
+
+        val switch_button_visible = findViewById<Switch>(R.id.switch_button_visible)
+        val text_view_visible = findViewById<TextView>(R.id.text_view_visible)
+        if (userIsVisibile) {
+            println("VOCE ESTA INVISIVEL")
+            switch_button_visible.setChecked(true)
+        } else {
+            switch_button_visible.setChecked(true)
+        }
+
+        if (userMail.equals("semLogin")) {
+            switch_button_visible.visibility = View.INVISIBLE
+            text_view_visible.visibility = View.INVISIBLE
+            textloginUser.setText(R.string.text_login)
+            textloginUserAction.setText(R.string.text_login_action)
+        } else {
+            switch_button_visible.visibility = View.VISIBLE
+            text_view_visible.visibility = View.VISIBLE
+            textloginUser.setText(R.string.text_logout)
+            textloginUserAction.setText(R.string.text_logout_action)
+        }
+        textloginUserAction.underline()
+
+        switch_button_visible.setOnCheckedChangeListener { buttonView, isChecked ->
+            if (isChecked) {
+                // The switch is enabled/checked
+                updateUserStatus("offline", "null")
+                showToast("Você está invisivel")
+                text_view_visible.setText(R.string.text_switch_visible)
+            } else {
+                // The switch is disabled
+                //updateUserStatus("online", arrayUserInfos.get(2).toString())
+                showToast("Você está visível")
+                text_view_visible.setText(R.string.text_switch_invisible)
+            }
+        }
 
         val drawer = findViewById<DrawerLayout>(R.id.drawer_layout)
         val toggle =
@@ -199,29 +256,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         val firstTimerNotify = object : CountDownTimer(30000, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 println("firstTimerNotify " + millisUntilFinished)
@@ -242,8 +276,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         }
         firstTimerNotify.start()
 
-        val secondTimerNotify = object : CountDownTimer(90000, 1000) {override fun onTick(millisUntilFinished: Long) {
-            println("secondTimerNotify " + millisUntilFinished) }
+        val secondTimerNotify = object : CountDownTimer(90000, 1000) {
+            override fun onTick(millisUntilFinished: Long) {
+                println("secondTimerNotify " + millisUntilFinished)
+            }
 
             override fun onFinish() {
                 openPopUpWithSound(
@@ -270,7 +306,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         return super.onOptionsItemSelected(item)
     }
 
-    fun visibleUser(){
+    fun TextView.underline() {
+        paintFlags = paintFlags or Paint.UNDERLINE_TEXT_FLAG
+    }
+/*    fun visibleUser(){
         if (userMail.equals("semLogin")) {
             showToast("Você precisa estar logado para fazer isso")
         } else {
@@ -285,13 +324,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                 //btnVisibleInvisible.setText("Ficar invisivel")
             }
         }
-    }
+    }*/
 
     fun toastDeveloping() {
         Toast.makeText(applicationContext, R.string.developing, Toast.LENGTH_LONG).show()
     }
 
-    fun callEmergency(){
+    fun callEmergency() {
         val latLong: LatLng = LatLng(lastLocation.latitude, lastLocation.longitude)
         val intent = Intent(this, EmergencyUser::class.java)
         if (arrayUserInfos != null) {
@@ -309,7 +348,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         startActivity(intent)
     }
 
-    private fun perfilUser(){
+    private fun perfilUser() {
         if (userMail.equals("semLogin")) {
             showToast("Você precisa estar logado para fazer isso")
         } else {
@@ -405,8 +444,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
                             pontos = querySnapshot.child("pontos").value.toString()
                             val pontosProvi = SharePreferences.getPoints(this@MapsActivity)
-                            if (pontosProvi > pontos.toInt()){
-                                pontos =pontosProvi.toString()//atualiza o valor para o maior
+                            if (pontosProvi > pontos.toInt()) {
+                                pontos = pontosProvi.toString()//atualiza o valor para o maior
                                 updateUserPointsToBd(pontos) //se o que tem no shared é maior, atualizar o bd
 
                             } else {
@@ -414,12 +453,16 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                             }
 
                             //avisa pra preencher o perfil
-                            /*
-                            if (pontos.toInt()<45){
-                                openPopUp("Olá!", "Você sabia que pode ganhar pontos preenchendo seu perfil?", true, "Preencher perfil", "Fechar")
-                            }
 
-                             */
+                            if (pontos.toInt() < 45) {
+                                openPopUp(
+                                    "Olá!",
+                                    "Você sabia que pode ganhar pontos preenchendo seu perfil?",
+                                    true,
+                                    "Preencher perfil",
+                                    "Fechar"
+                                )
+
 
                             isProfileDone(arrayUserInfos.get(0), arrayUserInfos.get(1), arrayUserInfos.get(2), arrayUserInfos.get(4), pontos.toInt())
 
@@ -442,7 +485,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                              */
 
                             //if (this@MapsActivity::lastLocation.isInitialized){
-                              //  getTheBest()
+                            //  getTheBest()
                             //}
 
                             EncerraDialog()
@@ -557,7 +600,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
         if (hasGpsPermission()) {
             // 1
-            if (ActivityCompat.checkSelfPermission(this,
+            if (ActivityCompat.checkSelfPermission(
+                    this,
                     Manifest.permission.ACCESS_FINE_LOCATION
                 ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
                     this,
@@ -590,7 +634,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
 
 
-                    if (!userMail.equals("semLogin")){
+                    if (!userMail.equals("semLogin")) {
 
                         updateUserStatus("online", "aindanao", "nao", "nao")
                         findUsersNerby(location.latitude, location.longitude)
@@ -814,7 +858,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                             if (!querySnapshot.key.toString().equals(userBd)) {
 
 
-
                                 var values: String
                                 var img: String
                                 img = querySnapshot.child("img").value.toString()
@@ -837,7 +880,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                                  */
 
 
-                                if (!querySnapshot.key.toString().equals(userBd)) { //se for o proprio usuario nao colocar no mapa com icone.
+                                if (!querySnapshot.key.toString()
+                                        .equals(userBd)
+                                ) { //se for o proprio usuario nao colocar no mapa com icone.
                                     //coloca o petFriend no mapa
                                     placeTruckersInMap(
                                         img,
@@ -850,7 +895,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                                     //getTheBest() //coloca o user com mais pontos em destaque
                                 }
 
-                            getTheBest()
+                                getTheBest()
 
 
                                 //coloca o petFriend no mapa
@@ -881,7 +926,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
     //coloca os usuarios proximos online no mapa
     //também tem o click do botão que esconde e mostra os usuários no mapa.
 
-    fun placeTruckersInMap(img: String, bdTrucker: String, lat: Double, long: Double, whatsapp: String, nome: String){
+    fun placeTruckersInMap(
+        img: String,
+        bdTrucker: String,
+        lat: Double,
+        long: Double,
+        whatsapp: String,
+        nome: String
+    ) {
 
         val latLng = LatLng(lat, long)
 
@@ -926,17 +978,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                             bit
                         )  //here we will insert the bitmap we got with the link in a placehold with white border.
 
-                        //val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("trucker!?!"+bdTrucker+delim
-                        // +img2+delim
-                        // +latLng+delim
-                        // +whatsapp+delim
-                        // +nome)
-                        val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("trucker!?!"+bdTrucker+delim
-                                +nome+delim
-                                +whatsapp+delim+img2+delim)
-                            .icon(
-                                BitmapDescriptorFactory.fromBitmap(bitmapFinal)
+                      val mark1 = mMap.addMarker(
+                            MarkerOptions().position(latLng).title(
+                                "trucker!?!" + bdTrucker + delim
+                                        + nome + delim
+                                        + whatsapp + delim + img2 + delim
                             )
+                                .icon(
+                                    BitmapDescriptorFactory.fromBitmap(bitmapFinal)
+                                )
                         )
                         arrayTruckersNerby.add(mark1)
 
@@ -980,9 +1030,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                         )  //here we will insert the bitmap we got with the link in a placehold with white border.
 
 
-                        val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("trucker!?!"+bdTrucker+delim
-                                +nome+delim
-                                +whatsapp+delim+img2+delim)
+                        val mark1 = mMap.addMarker(
+                            MarkerOptions().position(latLng).title(
+                                "trucker!?!" + bdTrucker + delim
+                                        + nome + delim
+                                        + whatsapp + delim + img2 + delim
+                            )
 
                                 .icon(
                                     BitmapDescriptorFactory.fromBitmap(bitmapFinal)
@@ -1028,7 +1081,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
          */
     }
 
-    fun getTheBest(){
+    fun getTheBest() {
 
         /*
                                 pos 0 - pontos
@@ -1037,17 +1090,21 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                                 pos 3 - img
                                  */
 
-        var cont2 =0
-        while (cont2<arrayPontosDosUsersProximos.size){
-            Log.d("teste", "testando array. posicao "+cont2+" == "+arrayPontosDosUsersProximos.get(cont2))
-            cont2++
-        }
+
 
         var cont=0
         var maiorValor = "0"
         var whats = "nao"
         var nomeMaior = "nao"
         var img = "nao"
+
+        Log.d("teste", "tamanho do array " + arrayPontosDosUsersProximos.size)
+        while (cont < arrayPontosDosUsersProximos.size) {
+            if (cont == 0) {
+                maiorValor = arrayPontosDosUsersProximos.get(cont)
+                nomeMaior = arrayPontosDosUsersProximos.get(cont + 1)
+                whats = arrayPontosDosUsersProximos.get(cont + 2)
+                img = arrayPontosDosUsersProximos.get(cont + 3)
         while (cont<arrayPontosDosUsersProximos.size){
             if (cont==0){
                 maiorValor = arrayPontosDosUsersProximos.get(cont)
@@ -1058,30 +1115,32 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                 //img = arrayPontosDosUsersProximos.get(cont+3)
 
                 Log.d("teste", "o valor de nomeMaior é "+nomeMaior)
+
             } else {
 
-                if (arrayPontosDosUsersProximos.get(cont).toInt()>maiorValor.toInt()){
+                if (arrayPontosDosUsersProximos.get(cont).toInt() > maiorValor.toInt()) {
                     maiorValor = arrayPontosDosUsersProximos.get(cont)
                     nomeMaior = arrayPontosDosUsersProximos.get(cont+1)
                     whats = arrayPontosDosUsersProximos.get(cont+2)
                     img = arrayPontosDosUsersProximos.get(cont+3)
                     Log.d("teste", "o valor de nomeMaior é "+nomeMaior)
+
                 }
             }
-            cont=cont+4
+            cont = cont + 4
         }
 
         val imageView: ImageView = findViewById(R.id.bestGuiInArea)
         val textView: TextView = findViewById(R.id.bestGuiInAreaPoints)
 
-        textView.setText(nomeMaior+"\nPontos: "+maiorValor)
+        textView.setText(nomeMaior + "\nPontos: " + maiorValor)
 
         imageView.setOnClickListener {
             openPopUpTrucker(nomeMaior, "Voce deseja falar no whatsapp com ele?", img, whats)
         }
         showToast("Parabéns! Você é o caminhoneiro com mais pontos do local e todo mundo está sabendo disto!")
 
-        if (img.equals("nao")){
+        if (img.equals("nao")) {
             imageView.visibility = View.VISIBLE
             try {
                 Glide.with(applicationContext)
@@ -1111,15 +1170,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
 
     }
-
-
-
-
-
-
-
-
-
 
 
     //procura usuarios proximos online
@@ -1195,14 +1245,18 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         val latLng = LatLng(lat, long)
 
 
-        if (tipo.equals("Restaurante")){
-            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+delim
-                    +latLng+delim
-                    +custo+delim
-                    +nota+delim
-                    +tipo+delim
-                    +nome+delim
-                    +avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurante)))
+        if (tipo.equals("Restaurante")) {
+            val mark1 = mMap.addMarker(
+                MarkerOptions().position(latLng).title(
+                    "place!?!" + bd + delim
+                            + latLng + delim
+                            + custo + delim
+                            + nota + delim
+                            + tipo + delim
+                            + nome + delim
+                            + avaliacoes
+                ).icon(BitmapDescriptorFactory.fromResource(R.drawable.restaurante))
+            )
             arrayPlacesNerby.add(mark1)
             mark1.tag = 0
             mMap.setOnMarkerClickListener(this)
@@ -1210,121 +1264,125 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         } else if (tipo.equals("Borracharia")) {
 
 
-            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+delim
-                    +latLng+delim
-                    +custo+delim
-                    +nota+delim
-                    +tipo+delim
-                    +nome+delim
-                    +avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.borracharia)))
+            val mark1 = mMap.addMarker(
+                MarkerOptions().position(latLng).title(
+                    "place!?!" + bd + delim
+                            + latLng + delim
+                            + custo + delim
+                            + nota + delim
+                            + tipo + delim
+                            + nome + delim
+                            + avaliacoes
+                ).icon(BitmapDescriptorFactory.fromResource(R.drawable.borracharia))
+            )
             arrayPlacesNerby.add(mark1)
             mark1.tag = 0
             mMap.setOnMarkerClickListener(this)
 
         } else if (tipo.equals("Espaço público")) {
 
-            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+delim
-                    +latLng+delim
-                    +custo+delim
-                    +nota+delim
-                    +tipo+delim
-                    +nome+delim
-                    +avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.parque)))
+            val mark1 = mMap.addMarker(
+                MarkerOptions().position(latLng).title(
+                    "place!?!" + bd + delim
+                            + latLng + delim
+                            + custo + delim
+                            + nota + delim
+                            + tipo + delim
+                            + nome + delim
+                            + avaliacoes
+                ).icon(BitmapDescriptorFactory.fromResource(R.drawable.parque))
+            )
             arrayPlacesNerby.add(mark1)
             mark1.tag = 0
             mMap.setOnMarkerClickListener(this)
 
         } else if (tipo.equals("Hotel")) {
 
-            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+delim
-                    +latLng+delim
-                    +custo+delim
-                    +nota+delim
-                    +tipo+delim
-                    +nome+delim
-                    +avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.hotel)))
+            val mark1 = mMap.addMarker(
+                MarkerOptions().position(latLng).title(
+                    "place!?!" + bd + delim
+                            + latLng + delim
+                            + custo + delim
+                            + nota + delim
+                            + tipo + delim
+                            + nome + delim
+                            + avaliacoes
+                ).icon(BitmapDescriptorFactory.fromResource(R.drawable.hotel))
+            )
             arrayPlacesNerby.add(mark1)
             mark1.tag = 0
             mMap.setOnMarkerClickListener(this)
 
         } else if (tipo.equals("Oficina")) {
 
-            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+delim
-                    +latLng+delim
-                    +custo+delim
-                    +nota+delim
-                    +tipo+delim
-                    +nome+delim
-                    +avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.oficina)))
+            val mark1 = mMap.addMarker(
+                MarkerOptions().position(latLng).title(
+                    "place!?!" + bd + delim
+                            + latLng + delim
+                            + custo + delim
+                            + nota + delim
+                            + tipo + delim
+                            + nome + delim
+                            + avaliacoes
+                ).icon(BitmapDescriptorFactory.fromResource(R.drawable.oficina))
+            )
             arrayPlacesNerby.add(mark1)
             mark1.tag = 0
             mMap.setOnMarkerClickListener(this)
 
         } else if (tipo.equals("Parada CCR")) {
 
-            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+delim
-                    +latLng+delim
-                    +custo+delim
-                    +nota+delim
-                    +tipo+delim
-                    +nome+delim
-                    +avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.ccr)))
+            val mark1 = mMap.addMarker(
+                MarkerOptions().position(latLng).title(
+                    "place!?!" + bd + delim
+                            + latLng + delim
+                            + custo + delim
+                            + nota + delim
+                            + tipo + delim
+                            + nome + delim
+                            + avaliacoes
+                ).icon(BitmapDescriptorFactory.fromResource(R.drawable.ccr))
+            )
             arrayPlacesNerby.add(mark1)
             mark1.tag = 0
             mMap.setOnMarkerClickListener(this)
 
         } else if (tipo.equals("Posto gasolina")) {
 
-            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+delim
-                    +latLng+delim
-                    +custo+delim
-                    +nota+delim
-                    +tipo+delim
-                    +nome+delim
-                    +avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.mdi_local_gas_station)))
+            val mark1 = mMap.addMarker(
+                MarkerOptions().position(latLng).title(
+                    "place!?!" + bd + delim
+                            + latLng + delim
+                            + custo + delim
+                            + nota + delim
+                            + tipo + delim
+                            + nome + delim
+                            + avaliacoes
+                ).icon(BitmapDescriptorFactory.fromResource(R.drawable.mdi_local_gas_station))
+            )
             arrayPlacesNerby.add(mark1)
             mark1.tag = 0
             mMap.setOnMarkerClickListener(this)
 
         } else if (tipo.equals("Posto de saúde")) {
 
-            val mark1 = mMap.addMarker(MarkerOptions().position(latLng).title("place!?!"+bd+delim
-                    +latLng+delim
-                    +custo+delim
-                    +nota+delim
-                    +tipo+delim
-                    +nome+delim
-                    +avaliacoes).icon(BitmapDescriptorFactory.fromResource(R.drawable.postosaude)))
+            val mark1 = mMap.addMarker(
+                MarkerOptions().position(latLng).title(
+                    "place!?!" + bd + delim
+                            + latLng + delim
+                            + custo + delim
+                            + nota + delim
+                            + tipo + delim
+                            + nome + delim
+                            + avaliacoes
+                ).icon(BitmapDescriptorFactory.fromResource(R.drawable.postosaude))
+            )
             arrayPlacesNerby.add(mark1)
             mark1.tag = 0
             mMap.setOnMarkerClickListener(this)
 
         }
 
-
-
-        //aqui esconde ou mostra os usuarios
-        //OBS: SE DER ERRO QUANDO TIVER MAIS MARKERS OLHAR NO METODO GET MARK. PODE SER QUE TENHA QUE MUDAR O CODIGO LA DENTRO, POIS ESTA .get(0) e nao get(position)
-        /*
-        val btnShowHidePetFriends = findViewById<Button>(R.id.btnShowHidePetFriends)
-        btnShowHidePetFriends.visibility = View.VISIBLE
-        btnShowHidePetFriends.setOnClickListener {
-            var cont=0
-            while (cont<arrayPetFriendMarker.size){
-                if (arrayPetFriendMarker.get(cont).isVisible){
-                    arrayPetFriendMarker.get(cont).isVisible=false
-                    btnShowHidePetFriends.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.petfriendsnot, 0, 0)
-                    makeToast("Usuários removidos do mapa")
-                } else {
-                    arrayPetFriendMarker.get(cont).isVisible=true
-                    btnShowHidePetFriends.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.petfriends, 0, 0)
-                    makeToast("Usuários de volta ao mapa")
-                }
-                cont++
-            }
-
-        }
-         */
     }
 
     //a cada 3,5 min (5 km a 80km/h) refaz as queryes para exibir os novos lugares em volta
@@ -1352,12 +1410,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         if (bd != null) {
             if (bd.contains("trucker!?!")) {
 
-                val tokens = StringTokenizer(bd.toString(), delim
+                val tokens = StringTokenizer(
+                    bd.toString(), delim
                 )
                 val descart = tokens.nextToken() // this will contain "trucker"
                 val bdDoUser = tokens.nextToken() // this will contain "bd"
                 //val descart2 = tokens.nextToken() // latlong
-                val nome  = tokens.nextToken() //nome
+                val nome = tokens.nextToken() //nome
                 val whats = tokens.nextToken() //whastapp
                 val img = tokens.nextToken()  //img
 
@@ -1365,7 +1424,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
             } else if (bd.contains("place!?!")) {
 
-                val tokens = StringTokenizer(bd.toString(), delim
+                val tokens = StringTokenizer(
+                    bd.toString(), delim
                 )
                 val discart = tokens.nextToken() // this will contain "place"
                 val bdDoPlace = tokens.nextToken() // this will contain "bd"
@@ -1376,13 +1436,19 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                 val nome = tokens.nextToken() // this will contain "nome"
                 val avaliacoes = tokens.nextToken() // this will contain "avaliacoes"
 
-                openPopUpPlaces(nome, "Veja abaixo as avaliações de outros caminhoneiros", true, "Avaliar", "Fechar", "places", bdDoPlace, custo, nota.toDouble(), tipo, avaliacoes)
-                //("place!?!"+bd+delim
-                // +latLng+delim
-                // +custo+delim
-                // +nota+delim
-                // +tipo)
-
+                openPopUpPlaces(
+                    nome,
+                    "Veja abaixo as avaliações de outros caminhoneiros",
+                    true,
+                    "Avaliar",
+                    "Fechar",
+                    "places",
+                    bdDoPlace,
+                    custo,
+                    nota.toDouble(),
+                    tipo,
+                    avaliacoes
+                )
             } else if (bd.contains("HelpNeed")){
 
                 val tokens = StringTokenizer(bd.toString(), delim
@@ -1403,10 +1469,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
     }
 
 
-
-
     //Abre a popup
+
     fun openPopUp (titulo: String, texto:String, exibeBtnOpcoes:Boolean, btnSim: String, btnNao: String, total: Int) {
+
         //exibeBtnOpcoes - se for não, vai exibir apenas o botão com OK, sem opção. Senão, exibe dois botões e pega os textos deles de btnSim e btnNao
 
         //EXIBIR POPUP
@@ -1528,15 +1594,16 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
     //abre popup exclusiva do caminhoneiro. USada quando clica no simbolo no mapa
 
-    fun openPopUpTrucker (nome: String, texto:String, img: String, whatsapp: String) {
+    fun openPopUpTrucker(nome: String, texto: String, img: String, whatsapp: String) {
         //exibeBtnOpcoes - se for não, vai exibir apenas o botão com OK, sem opção. Senão, exibe dois botões e pega os textos deles de btnSim e btnNao
 
         //EXIBIR POPUP
         // Initialize a new layout inflater instance
-        val inflater: LayoutInflater = getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+        val inflater: LayoutInflater =
+            getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
 
         // Inflate a custom view using layout inflater
-        val view = inflater.inflate(R.layout.popup_trucker,null)
+        val view = inflater.inflate(R.layout.popup_trucker, null)
 
         // Initialize a new instance of popup window
         val popupWindow = PopupWindow(
@@ -1546,7 +1613,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         )
 
 
-
         // Set an elevation for the popup window
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             popupWindow.elevation = 10.0F
@@ -1554,7 +1620,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
 
         // If API level 23 or higher then execute the code
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             // Create a new slide animation for popup window enter transition
             val slideIn = Slide()
             slideIn.slideEdge = Gravity.TOP
@@ -1588,7 +1654,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             popupWindow.dismiss()
         }
 
-        if (img.equals("nao")){
+        if (img.equals("nao")) {
             imageViewPop.visibility = View.GONE
         } else {
             imageViewPop.visibility = View.GONE
@@ -1624,8 +1690,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         )
 
     }
-      
-      fun openPopUpWithSound(
+
+    fun openPopUpWithSound(
         help: Boolean,
         texto: String,
         btnSim: String,
@@ -1693,7 +1759,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             if (quantBtn == 2) {
                 buttonPopup.visibility = View.GONE
             }
-        }else{
+        } else {
             buttonPopupS.visibility = View.GONE
             buttonPopupN.visibility = View.GONE
             buttonPopup.visibility = View.GONE
@@ -1771,11 +1837,20 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             0, // X offset
             0 // Y offset
         )
+
+        val closeTimerNotify = object : CountDownTimer(7000, 1000) {
+            override fun onTick(millisUntilFinished: Long) {}
+            override fun onFinish() {
+                popupWindow.dismiss()
+                cancel()
+            }
+        }
+        if (!help) {
+            closeTimerNotify.start()
+        }
     }
 
-      
-      
-          //aqui estão os clickes e os processos de salvar no banco de dados a avaliaçao
+    //aqui estão os clickes e os processos de salvar no banco de dados a avaliaçao
     fun openPopUpPlaces(
         titulo: String,
         texto: String,
@@ -1880,19 +1955,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         txtTexto.text = texto
 
         //ajusta o valor
-        /*
-        if (custo.equals("1")){
-            txtCusto.setText("$")
-        } else if (custo.equals("2")){
-            txtCusto.setText("$ $")
-        } else if (custo.equals("3")){
-            txtCusto.setText("$ $ $")
-        } else if (custo.equals("4")){
-            txtCusto.setText("$ $ $ $")
-        } else {
-            txtCusto.setText("$ $ $ $ $")
-        }
-         */
 
 
         //agora ajusta a nota e o custo
@@ -2202,9 +2264,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                     }
 
 
-                    databaseReference.child("places").child(bd).child("nota").setValue(novaNota.toInt())
-                    databaseReference.child("places").child(bd).child("custo").setValue(currencyTranslation(novoCusto))
-                    databaseReference.child("places").child(bd).child("avaliacoes").setValue(avaliacoes.toInt()+1)
+                    databaseReference.child("places").child(bd).child("nota")
+                        .setValue(novaNota.toInt())
+                    databaseReference.child("places").child(bd).child("custo")
+                        .setValue(currencyTranslation(novoCusto))
+                    databaseReference.child("places").child(bd).child("avaliacoes")
+                        .setValue(avaliacoes.toInt() + 1)
                     showToast("Pronto. Você ajudou a comunidade de caminhoneiros.")
                     updateUserPoints(10)
                     popupWindow.dismiss()
@@ -2448,9 +2513,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
     override fun onResume() {
         super.onResume()
-        Log.d("teste", "pontos no resume é "+pontos)
+       
         pontos = SharePreferences.getPoints(this).toString()
-        Log.d("teste", "pontos no resume depois de atualizar é "+pontos)
 
         updateUserPoints(0)
     }
@@ -2743,10 +2807,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
 
 
-
-
-
-
     //METODOS DE PEDIDO DE AJUDA
     fun sendHelpRequest(state: String, img: String, whatsapp: String, nome: String, request: String) {
 
@@ -3002,28 +3062,28 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
     fun updateUserPointsToBd(pontos: String){
         val textView: TextView = findViewById(R.id.tvPontos)
-        textView.setText("Seus pontos: "+pontos)
+        textView.setText("Seus pontos: " + pontos)
 
         databaseReference.child("usuarios").child(userBd).child("pontos").setValue(pontos)
 
     }
 
-    fun updateUserPoints(novosPontos:Int){
+    fun updateUserPoints(novosPontos: Int) {
 
         //se for 0 é apenas para atualizar no sharedPrefs.
-        if (novosPontos!=0){
-            pontos = (pontos.toInt()+novosPontos).toString()
-            showToast("Parabéns! Você ganhou "+novosPontos+" pontos")
-            databaseReference.child("usuarios").child(userBd).child("pontos").setValue(pontos)
+
+        if (novosPontos != 0) {
+            pontos = (pontos.toInt() + novosPontos).toString()
+            showToast("Parabéns! Você ganhou " + novosPontos + " pontos")
         }
         SharePreferences.setPoints(this, pontos.toInt())
         val textView: TextView = findViewById(R.id.tvPontos)
-        textView.setText("Seus pontos: "+pontos)
+        textView.setText("Seus pontos: " + pontos)
 
     }
 
 
-    fun showToast(message: String){
+    fun showToast(message: String) {
 
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
