@@ -455,15 +455,19 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                             val navigationView = findViewById<NavigationView>(R.id.nav_view)
                             val headerView = navigationView.getHeaderView(0)
                             val navUsername = headerView.findViewById(R.id.drawer_name) as TextView
-                            navUsername.text = arrayUserInfos.get(1)
+
+                            if(!arrayUserInfos.get(1).equals("nao")){
+                                navUsername.text = arrayUserInfos.get(1)
+                            }
+
                             val navPhoto = headerView.findViewById(R.id.imageView) as ImageView
 
                             Glide.with(applicationContext)  //2
                                 .load(arrayUserInfos.get(2)) //3
                                 .centerCrop() //4
-                                .placeholder(R.drawable.perfil) //5
-                                .error(R.drawable.perfil) //6
-                                .fallback(R.drawable.perfil) //7
+                                .placeholder(R.drawable.placeholder_avatar) //5
+                                .error(R.drawable.placeholder_avatar) //6
+                                .fallback(R.drawable.placeholder_avatar) //7
                                 .into(navPhoto)
 
                             EncerraDialog()
