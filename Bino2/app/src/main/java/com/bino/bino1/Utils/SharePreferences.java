@@ -38,6 +38,13 @@ public class SharePreferences {
 
     public static void setPoints(Context context, int points) {
         android.content.SharedPreferences preferences = context.getSharedPreferences("user_preferences", context.MODE_PRIVATE);
+
+        /*
+        val sharedPref: SharedPreferences = getSharedPreferences(getString(R.string.sharedpreferences), 0) //0 é private mode
+        val editor = sharedPref.edit()
+        editor.apply()
+
+         */
         preferences.edit().putInt("points", points).commit();
     }
 
