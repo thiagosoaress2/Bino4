@@ -42,3 +42,12 @@ Em breve
 Contato
 
 em breve
+
+
+Equipe
+
+Nicolas Fróes
+Thiago Soares
+Isabel Almeida
+Jhonatan Moreira
+Fábio Carvalho
