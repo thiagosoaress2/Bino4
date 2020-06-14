@@ -115,26 +115,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         fab.setOnClickListener(View.OnClickListener { view ->
             callEmergency()
         })
-
-
-        if (userMail.equals("semLogin")) {
-            showToast("Você precisa estar logado para fazer isso")
-        } else {
-
-            if (userIsVisibile) {
-                updateUserStatus("offline", "null", "null","null")
-                showToast("Você está invisivel")
-                btnVisibleInvisible.setText("Ficar visível")
-            } else {
-                //updateUserStatus("online", arrayUserInfos.get(2).toString())
-                showToast("Você está visível")
-                btnVisibleInvisible.setText("Ficar invisivel")
-            }
-        }
+        val layout_left_fab = findViewById<RelativeLayout>(R.id.relativelayout_emergengy_fab)
+        layout_left_fab.setOnClickListener(View.OnClickListener { view ->
+            callEmergency()
+        })
 
         val textloginUserAction = findViewById<TextView>(R.id.login_textView_action)
-
         textloginUserAction.setOnClickListener {
+            auth = FirebaseAuth.getInstance()
+            auth.signOut()
             finish()
         }
 
@@ -184,7 +173,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         toggle.syncState()
 
         requestToOpenGpsLikeWaze()  //liga o GPS do user
-        firstMeths()
+        //firstMeths()
 
         if (!userMail.equals("semLogin")) {
             //verifica se já inseriu código
@@ -288,7 +277,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         secondTimerNotify.start()
     }
 
-
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val drawer = findViewById<DrawerLayout>(R.id.drawer_layout)
         when (item.itemId) {
@@ -328,14 +316,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             intent.putExtra("nome", "Um caminhoneiro")
         } else {
             intent.putExtra("nome", arrayUserInfos.get(1))
+            intent.putExtra("lat", lastLocation.latitude.toString())
+            intent.putExtra("lng", lastLocation.longitude.toString())
+            intent.putExtra("address", getAddress(latLong))
+            intent.putExtra("whats", arrayUserInfos.get(5))
+            intent.putExtra("userBd", userBd)
         }
-
-        intent.putExtra("lat", lastLocation.latitude.toString())
-        intent.putExtra("lng", lastLocation.longitude.toString())
-        intent.putExtra("address", getAddress(latLong))
-        intent.putExtra("whats", arrayUserInfos.get(5) )
-        intent.putExtra("userBd", userBd)
-
         startActivity(intent)
     }
 
@@ -353,7 +339,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         }
     }
 
-    fun firstMeths() {  //métodos retirados do onCreate pra acelerar o processo de abertura da activity
+/*    fun firstMeths() {  //métodos retirados do onCreate pra acelerar o processo de abertura da activity
 
         val btnLogout: Button = findViewById(R.id.btnLogout)
         val btnLogin: Button = findViewById(R.id.btnLogin)
@@ -370,26 +356,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             finish()
         }
 
-
-        val btnVisibleInvisible: Button = findViewById(R.id.btnVisibleInvisible)
-        btnVisibleInvisible.setOnClickListener {
-
-            if (userMail.equals("semLogin")) {
-                showToast("Você precisa estar logado para fazer isso")
-            } else {
-
-                if (userIsVisibile) {
-                    updateUserStatus("offline", "null", "null", "null")
-                    showToast("Você está invisivel")
-                    btnVisibleInvisible.setText("Ficar visível")
-                } else {
-                    //updateUserStatus("online", arrayUserInfos.get(2).toString())
-                    showToast("Você está visível")
-                    btnVisibleInvisible.setText("Ficar invisivel")
-                }
-            }
-        }
-    }
+    }*/
 
     fun queryGetUserInfos() {
 
@@ -1748,6 +1715,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         }
 
         // Get the widgets reference from custom view
+
         val buttonPopupN = view.findViewById<Button>(R.id.btnNo)
         val buttonPopupS = view.findViewById<Button>(R.id.btnYes)
         val buttonPopup = view.findViewById<Button>(R.id.btn)
@@ -2528,8 +2496,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         super.onResume()
        
         pontos = SharePreferences.getPoints(this).toString()
-
         updateUserPoints(0)
+
+        val layout_left_fab = findViewById<RelativeLayout>(R.id.relativelayout_emergengy_fab)
+        if(SharePreferences.getEmergency(applicationContext)){
+            layout_left_fab.visibility = View.VISIBLE
+        }else{
+            layout_left_fab.visibility = View.GONE
+        }
     }
 
     //métodos de busca de enderço a partir de Latitude e Longitude ou o contrário
@@ -3074,8 +3048,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
     }
 
     fun updateUserPointsToBd(pontos: String){
-        val textView: TextView = findViewById(R.id.tvPontos)
-        textView.setText("Seus pontos: " + pontos)
+
+        val navigationView = findViewById<NavigationView>(R.id.nav_view)
+        val headerView = navigationView.getHeaderView(0)
+        val navPoints = headerView.findViewById(R.id.drawer_points) as TextView
+        navPoints.text = "Seus pontos: " + pontos
 
         databaseReference.child("usuarios").child(userBd).child("pontos").setValue(pontos)
 
@@ -3090,9 +3067,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             showToast("Parabéns! Você ganhou " + novosPontos + " pontos")
         }
         SharePreferences.setPoints(this, pontos.toInt())
-        val textView: TextView = findViewById(R.id.tvPontos)
-        textView.setText("Seus pontos: " + pontos)
 
+        val navigationView = findViewById<NavigationView>(R.id.nav_view)
+        val headerView = navigationView.getHeaderView(0)
+        val navPoints = headerView.findViewById(R.id.drawer_points) as TextView
+        navPoints.text = "Seus pontos: " + pontos
     }
 
 

@@ -25,14 +25,7 @@
             android:layout_height="match_parent"
             tools:context=".MapsActivity" />
 
-        <Button
-            android:id="@+id/btnLogout"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Logout"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+
 
         <ImageView
             android:id="@+id/bestGuiInArea"
@@ -74,15 +67,6 @@
             app:layout_constraintStart_toStartOf="@+id/imageView4"
             app:layout_constraintTop_toTopOf="@+id/imageView4">
 
-            <TextView
-                android:id="@+id/tvPontos"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:text="Seus pontos:"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"></TextView>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -93,22 +77,6 @@
             app:srcCompat="@drawable/perfil"
             tools:layout_editor_absoluteY="8dp" />
 
-        <Button
-            android:id="@+id/btnLogin"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Login"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/btnLogout" />
-
-
-        <Button
-            android:id="@+id/btnVisibleInvisible"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Ficar invisivel"
-            app:layout_constraintTop_toBottomOf="@+id/btnLogin" />
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>

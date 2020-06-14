@@ -33,4 +33,26 @@
         app:fabSize="normal"
         app:srcCompat="@android:drawable/ic_dialog_alert" />
 
+
+    <RelativeLayout
+        android:id="@+id/relativelayout_emergengy_fab"
+        android:layout_width="180dp"
+        android:layout_height="40dp"
+        android:layout_gravity="bottom|end"
+        android:layout_marginBottom="23dp"
+        android:layout_marginRight="40dp"
+        android:background="@drawable/xml_round_button_on_emergency"
+        >
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:textColor="@android:color/white"
+            android:layout_marginLeft="20dp"
+            android:text="EM EMERGÊNCIA"/>
+
+
+    </RelativeLayout>
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
