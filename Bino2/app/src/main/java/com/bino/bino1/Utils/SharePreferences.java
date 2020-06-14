@@ -20,6 +20,7 @@ public class SharePreferences {
     }
 
 
+
     public static void setSound(Context context, boolean sound) {
         android.content.SharedPreferences preferences = context.getSharedPreferences("user_preferences", context.MODE_PRIVATE);
         preferences.edit().putBoolean("sound", sound).commit();
@@ -34,4 +35,21 @@ public class SharePreferences {
         }
         return sound ;
     }
+
+    public static void setPoints(Context context, int points) {
+        android.content.SharedPreferences preferences = context.getSharedPreferences("user_preferences", context.MODE_PRIVATE);
+        preferences.edit().putInt("points", points).commit();
+    }
+
+    public static int getPoints(Context context) {
+        android.content.SharedPreferences preferences = context.getSharedPreferences("user_preferences", context.MODE_PRIVATE);
+        int points = 0;
+
+        if (preferences.contains("points")) {
+            points = preferences.getInt("points", 0);
+        }
+        return points ;
+    }
+
+
 }

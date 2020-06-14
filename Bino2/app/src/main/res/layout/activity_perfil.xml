@@ -8,83 +8,238 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/layPerfil"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-        <ImageButton
-            android:id="@+id/perfil_imageView"
-            android:layout_width="180dp"
-            android:layout_height="180dp"
-            android:layout_marginStart="8dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:srcCompat="@tools:sample/avatars" />
+        <ScrollView
+            android:id="@+id/scrollView3"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fillViewport="true">
 
-        <EditText
-            android:id="@+id/perfil_etNome"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
-            android:ems="10"
-            android:hint="Nome"
-            android:inputType="textPersonName"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/perfil_imageView" />
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
 
-        <EditText
-            android:id="@+id/perfil_etNemergencia"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
-            android:ems="10"
-            android:hint="Número de emergência"
-            android:inputType="number|phone"
-            app:layout_constraintEnd_toEndOf="@+id/perfil_etNome"
-            app:layout_constraintStart_toStartOf="@+id/perfil_etNome"
-            app:layout_constraintTop_toBottomOf="@+id/perfil_etNwhatsapp" />
 
-        <EditText
-            android:id="@+id/perfil_etNwhatsapp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:ems="10"
-            android:hint="Seu whatsapp com DDD"
-            android:inputType="phone"
-            app:layout_constraintEnd_toEndOf="@+id/perfil_etNome"
-            app:layout_constraintStart_toStartOf="@+id/perfil_etNome"
-            app:layout_constraintTop_toBottomOf="@+id/perfil_etNome" />
+                <ImageView
+                    android:id="@+id/perfil_imageView"
+                    android:layout_width="110dp"
+                    android:layout_height="110dp"
+                    android:layout_marginTop="80dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:srcCompat="@tools:sample/avatars" />
 
-        <Button
-            android:id="@+id/perfil_btnHelpNumero"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:text="?"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/perfil_etNemergencia"
-            app:layout_constraintTop_toTopOf="@+id/perfil_etNemergencia" />
+                <TextView
+                    android:id="@+id/textView6"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="32dp"
+                    android:text="@string/perfil_tvNome"
+                    android:textColor="@color/cinza"
+                    android:textStyle="bold"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/perfil_btnUpload" />
 
-        <Button
-            android:id="@+id/perfil_btnSalvar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:text="Salvar e sair"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/perfil_etNemergencia" />
+                <EditText
+                    android:id="@+id/perfil_etNome"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginEnd="50dp"
+                    android:background="@drawable/rounded_edittext"
+                    android:elevation="3dp"
+                    android:ems="10"
+                    android:hint="  Nome"
+                    android:inputType="textPersonName"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="@+id/textView6"
+                    app:layout_constraintTop_toBottomOf="@+id/textView6" />
 
-        <Button
-            android:id="@+id/perfil_btnUpload"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="trocar foto"
-            app:layout_constraintBottom_toBottomOf="@+id/perfil_imageView"
-            app:layout_constraintEnd_toEndOf="@+id/perfil_imageView"
-            app:layout_constraintStart_toStartOf="@+id/perfil_imageView"
-            app:layout_constraintTop_toBottomOf="@+id/perfil_imageView" />
+                <TextView
+                    android:id="@+id/textView8"
+                    android:layout_width="wrap_content"
+                    android:layout_height="19dp"
+                    android:layout_marginTop="16dp"
+                    android:text="@string/perfil_tvData"
+                    android:textColor="@color/cinza"
+                    android:textStyle="bold"
+                    app:layout_constraintStart_toStartOf="@+id/textView6"
+                    app:layout_constraintTop_toBottomOf="@+id/perfil_etNome" />
+
+                <EditText
+                    android:id="@+id/perfil_etNascimento"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/rounded_edittext"
+                    android:elevation="3dp"
+                    android:ems="10"
+                    android:hint="  dd/mm/aaaa"
+                    android:inputType="date|textPersonName"
+                    app:layout_constraintEnd_toEndOf="@+id/perfil_etNome"
+                    app:layout_constraintStart_toStartOf="@+id/perfil_etNome"
+                    app:layout_constraintTop_toBottomOf="@+id/textView8" />
+
+                <TextView
+                    android:id="@+id/textView9"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="@string/perfil_tvCel"
+                    android:textColor="@color/cinza"
+                    android:textStyle="bold"
+                    app:layout_constraintStart_toStartOf="@+id/textView8"
+                    app:layout_constraintTop_toBottomOf="@+id/perfil_etNascimento" />
+
+                <EditText
+                    android:id="@+id/perfil_etNemergencia"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/rounded_edittext"
+                    android:elevation="3dp"
+                    android:ems="10"
+                    android:hint=" (99) 9999 9999"
+                    android:inputType="number|phone"
+                    app:layout_constraintEnd_toEndOf="@+id/perfil_etNwhatsapp"
+                    app:layout_constraintStart_toStartOf="@+id/perfil_etNwhatsapp"
+                    app:layout_constraintTop_toBottomOf="@+id/textView10" />
+
+                <TextView
+                    android:id="@+id/textView10"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="@string/perfil_tvEmerg"
+                    android:textColor="@color/cinza"
+                    android:textStyle="bold"
+                    app:layout_constraintStart_toStartOf="@+id/textView9"
+                    app:layout_constraintTop_toBottomOf="@+id/perfil_etNwhatsapp" />
+
+                <TextView
+                    android:id="@+id/textView11"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="@string/perfil_tvDoencas"
+                    android:textColor="@color/cinza"
+                    android:textStyle="bold"
+                    app:layout_constraintStart_toStartOf="@+id/textView10"
+                    app:layout_constraintTop_toBottomOf="@+id/perfil_etNemergencia" />
+
+                <EditText
+                    android:id="@+id/perfil_etDoencas"
+                    android:layout_width="0dp"
+                    android:layout_height="80dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/rounded_edittext"
+                    android:elevation="3dp"
+                    android:ems="10"
+                    android:hint="Ex: Diabetes, hipertensão, \nhipotireoidismo e etc."
+                    android:inputType="textPersonName"
+                    app:layout_constraintEnd_toEndOf="@+id/perfil_etNemergencia"
+                    app:layout_constraintStart_toStartOf="@+id/perfil_etNemergencia"
+                    app:layout_constraintTop_toBottomOf="@+id/textView11" />
+
+                <EditText
+                    android:id="@+id/perfil_etNwhatsapp"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/rounded_edittext"
+                    android:elevation="3dp"
+                    android:ems="10"
+                    android:hint=" (99) 9999 9999"
+                    android:inputType="phone"
+                    app:layout_constraintEnd_toEndOf="@+id/perfil_etNascimento"
+                    app:layout_constraintStart_toStartOf="@+id/perfil_etNascimento"
+                    app:layout_constraintTop_toBottomOf="@+id/textView9" />
+
+                <Button
+                    android:id="@+id/perfil_btnHelpNumero"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginEnd="4dp"
+                    android:text=" ?"
+                    app:layout_constraintBottom_toBottomOf="@+id/perfil_etNemergencia"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/perfil_etNemergencia"
+                    app:layout_constraintTop_toTopOf="@+id/perfil_etNemergencia" />
+
+                <TextView
+                    android:id="@+id/textView13"
+                    android:layout_width="wrap_content"
+                    android:layout_height="19dp"
+                    android:layout_marginTop="16dp"
+                    android:text="@string/perfil_tvRemedios"
+                    android:textColor="@color/cinza"
+                    android:textStyle="bold"
+                    app:layout_constraintStart_toStartOf="@+id/textView11"
+                    app:layout_constraintTop_toBottomOf="@+id/perfil_etDoencas" />
+
+                <RadioButton
+                    android:id="@+id/perfil_remedioRadioN"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Não"
+                    android:checked="true"
+                    android:textColor="@color/cinza"
+                    app:layout_constraintBottom_toBottomOf="@+id/textView13"
+                    app:layout_constraintStart_toEndOf="@+id/textView13"
+                    app:layout_constraintTop_toTopOf="@+id/textView13" />
+
+                <RadioButton
+                    android:id="@+id/perfil_remedioRadioS"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="Sim"
+                    android:textColor="@color/cinza"
+                    app:layout_constraintStart_toEndOf="@+id/perfil_remedioRadioN"
+                    app:layout_constraintTop_toTopOf="@+id/perfil_remedioRadioN" />
+
+                <Button
+                    android:id="@+id/perfil_btnSalvar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:layout_marginTop="40dp"
+                    android:layout_marginBottom="40dp"
+                    android:background="@drawable/xml_round_button_off_emergency"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:text="@string/perfil_btnSalvar"
+                    android:textAllCaps="false"
+                    android:textColor="#000000"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/perfil_remedioRadioS" />
+
+                <Button
+                    android:id="@+id/perfil_btnUpload"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:background="@drawable/btnadd"
+                    app:layout_constraintBottom_toBottomOf="@+id/perfil_imageView"
+                    app:layout_constraintEnd_toEndOf="@+id/perfil_imageView"
+                    app:layout_constraintStart_toEndOf="@+id/perfil_imageView"
+                    app:layout_constraintTop_toBottomOf="@+id/perfil_imageView" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </ScrollView>
+
+
     </androidx.constraintlayout.widget.ConstraintLayout>
+
 
     <RelativeLayout
         android:id="@+id/LayoutProgressBar"

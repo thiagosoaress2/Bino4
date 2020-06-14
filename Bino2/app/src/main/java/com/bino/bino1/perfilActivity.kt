@@ -1,10 +1,8 @@
 package com.bino.bino1
 
 import android.Manifest
-import android.content.Context
-import android.content.ContextWrapper
-import android.content.DialogInterface
-import android.content.Intent
+import android.annotation.SuppressLint
+import android.content.*
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -12,6 +10,8 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
+import android.text.Editable
+import android.text.TextWatcher
 import android.transition.Slide
 import android.transition.TransitionManager
 import android.view.*
@@ -21,6 +21,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.bino.bino1.Utils.SharePreferences
 import com.bumptech.glide.Glide
 import com.google.android.gms.tasks.Continuation
 import com.google.android.gms.tasks.Task
@@ -45,14 +46,60 @@ class perfilActivity : AppCompatActivity() {
 
     var userBd = "nao"
 
+    var pontos = 0
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_perfil)
 
+
         val actionbar = this.supportActionBar
         actionbar!!.setDisplayHomeAsUpEnabled(true)
         actionbar!!.setHomeButtonEnabled(true)
+
+        metodosIniciais()
+
+        pontos = SharePreferences.getPoints(this)
+
+        queryInfosExtras()
+
+    }
+
+    fun metodosIniciais() {
+
+        mFireBaseStorage = FirebaseStorage.getInstance()
+        mphotoStorageReference = mFireBaseStorage.reference
+
+        val btnHelpNumero: Button = findViewById(R.id.perfil_btnHelpNumero)
+        btnHelpNumero.setOnClickListener {
+            openPopUp(
+                "Ajuda",
+                "Você pode cadastrar um número de emergência para o qual o Bino envia sua localização e um pedido de ajuda em caso de emergência. É importante que este número seja um telefone com whatsapp.",
+                false,
+                "n",
+                "m"
+            )
+        }
+
+        val btnUpload: Button = findViewById(R.id.perfil_btnUpload)
+        btnUpload.setOnClickListener {
+
+            if (CheckPermissions()) {
+
+                openPopUp2(
+                    "Envio de imagem",
+                    "Selecione o modo de envio da imagem:",
+                    true,
+                    "Tirar foto",
+                    "foto do celular",
+                    "fotoNovoProd"
+                )
+
+            }
+
+        }
+
 
         val nEmergencia = intent.getStringExtra("nEmergencia")
         val nome = intent.getStringExtra("nome")
@@ -62,24 +109,42 @@ class perfilActivity : AppCompatActivity() {
 
         databaseReference = FirebaseDatabase.getInstance().reference
 
-        metodosIniciais()
 
         val etNemergencia: EditText = findViewById(R.id.perfil_etNemergencia)
         val country2 = PhoneNumberFormatType.PT_BR // OR PhoneNumberFormatType.PT_BR
         val phoneFormatter2 = PhoneNumberFormatter(WeakReference(etNemergencia), country2)
         etNemergencia.addTextChangedListener(phoneFormatter2)
 
-        if (!nEmergencia.equals("nao")){
+        if (!nEmergencia.equals("nao")) {
             etNemergencia.setText(nEmergencia)
         }
         val etNome: EditText = findViewById(R.id.perfil_etNome)
-        if (!nome.equals("nao")){
+        if (!nome.equals("nao")) {
             etNome.setText(nome)
         }
         val imageView: ImageView = findViewById(R.id.perfil_imageView)
-        if (!img.equals("nao")){
-            Glide.with(this).load(img).into(imageView)
+        if (!img.equals("nao")) {
+
+            Glide.with(this)
+                .load(img)
+                .thumbnail(0.7f)
+                .skipMemoryCache(true)
+                .transform(CircleTransform(this)) // applying the image transformer
+                .into(imageView)
+
+        } else {
+
+            Glide.with(applicationContext)
+                .load(R.drawable.perfil)
+                .thumbnail(0.7f)
+                .skipMemoryCache(true)
+                .transform(CircleTransform(this)) // applying the image transformer
+                .into(imageView)
+
         }
+
+        val etNascimento: EditText = findViewById(R.id.perfil_etNascimento)
+        dateWatcher(etNascimento)
 
         val etNwhatsapp: EditText = findViewById(R.id.perfil_etNwhatsapp)
         //textWatcher para formatar em máscara de telefone
@@ -87,24 +152,79 @@ class perfilActivity : AppCompatActivity() {
         val phoneFormatter = PhoneNumberFormatter(WeakReference(etNwhatsapp), country)
         etNwhatsapp.addTextChangedListener(phoneFormatter)
 
-        if (!whatsapp.equals("nao")){
+        if (!whatsapp.equals("nao")) {
             etNwhatsapp.setText(whatsapp)
         }
+
+        val radioN = findViewById<RadioButton>(R.id.perfil_remedioRadioN)
+        val radioS = findViewById<RadioButton>(R.id.perfil_remedioRadioS)
+
+        radioN.setOnClickListener {
+            radioN.isChecked = true
+            radioS.isChecked = false
+        }
+
+        radioS.setOnClickListener {
+            radioN.isChecked = false
+            radioS.isChecked = true
+        }
+
 
         val btnSalvar: Button = findViewById(R.id.perfil_btnSalvar)
         btnSalvar.setOnClickListener {
 
-            if (!urifinal.equals("nao")){
+            if (!urifinal.equals("nao")) {
                 databaseReference.child("usuarios").child(userBd).child("img").setValue(urifinal)
+                if (img.equals("nao")){
+                    //significa que é a primeira foto que ele upa
+                    updateUserPoints(25)
+                }
+
             }
-            if (!etNemergencia.text.equals(nEmergencia) && !etNemergencia.text.isEmpty()){
-                databaseReference.child("usuarios").child(userBd).child("nEmergencia").setValue(etNemergencia.text.toString())
+            if (!etNemergencia.text.equals(nEmergencia) && !etNemergencia.text.isEmpty()) {
+                databaseReference.child("usuarios").child(userBd).child("nEmergencia")
+                    .setValue(etNemergencia.text.toString())
+                if (nEmergencia.equals("nao")){
+                    updateUserPoints(20)
+                }
+
             }
-            if (!etNome.text.equals(nome) && !etNome.text.isEmpty()){
-                databaseReference.child("usuarios").child(userBd).child("nome").setValue(etNome.text.toString())
+            if (!etNome.text.equals(nome) && !etNome.text.isEmpty()) {
+                databaseReference.child("usuarios").child(userBd).child("nome")
+                    .setValue(etNome.text.toString())
+                if (nome.equals("nao")){
+                    updateUserPoints(10)
+                }
+
             }
-            if (!etNwhatsapp.equals(whatsapp) && !etNwhatsapp.text.isEmpty()){
-                databaseReference.child("usuarios").child(userBd).child("whatsapp").setValue(etNwhatsapp.text.toString())
+            if (!etNwhatsapp.equals(whatsapp) && !etNwhatsapp.text.isEmpty()) {
+                databaseReference.child("usuarios").child(userBd).child("whatsapp")
+                    .setValue(etNwhatsapp.text.toString())
+                if (whatsapp.equals("nao")){
+                    updateUserPoints(15)
+                }
+
+            }
+
+            val etNascimento: EditText = findViewById(R.id.perfil_etNascimento)
+            val etDoencas: EditText = findViewById(R.id.perfil_etDoencas)
+
+            if (etNascimento.text.isEmpty()){
+                databaseReference.child("usuarios").child(userBd).child("nascimento").setValue(etNascimento.text.toString())
+            } else{
+                databaseReference.child("usuarios").child(userBd).child("nascimento").setValue("nao")
+            }
+
+            if (etDoencas.text.isEmpty()){
+                databaseReference.child("usuarios").child(userBd).child("doencas").setValue(etDoencas.text.toString())
+            } else{
+                databaseReference.child("usuarios").child(userBd).child("doencas").setValue("nao")
+            }
+
+            if (radioN.isChecked){
+                databaseReference.child("usuarios").child(userBd).child("remedios").setValue("nao")
+            } else {
+                databaseReference.child("usuarios").child(userBd).child("remedios").setValue("sim")
             }
 
             finish()
@@ -112,37 +232,136 @@ class perfilActivity : AppCompatActivity() {
 
     }
 
+
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         // This Activity allow only one action (Back To Menu);
         finish()
         return true
     }
 
-    fun metodosIniciais(){
+   
 
-        mFireBaseStorage = FirebaseStorage.getInstance()
-        mphotoStorageReference = mFireBaseStorage.reference
+      fun queryInfosExtras() {
 
-        val btnHelpNumero: Button = findViewById(R.id.perfil_btnHelpNumero)
-        btnHelpNumero.setOnClickListener {
-            openPopUp("Ajuda", "Você pode cadastrar um número de emergência para o qual o Bino envia sua localização e um pedido de ajuda em caso de emergência. É importante que este número seja um telefone com whatsapp.", false, "n", "m")
+
+        databaseReference = FirebaseDatabase.getInstance().reference
+
+        ChamaDialog()
+    val rootRef = databaseReference.child("usuarios").child(userBd)
+    rootRef.addListenerForSingleValueEvent(
+    object : ValueEventListener {
+        override fun onCancelled(p0: DatabaseError) {
+
+            EncerraDialog()
         }
 
-        val btnUpload : Button = findViewById(R.id.perfil_btnUpload)
-        btnUpload.setOnClickListener {
+        override fun onDataChange(p0: DataSnapshot) {
 
-            if (CheckPermissions()){
+            var values: String
 
-                openPopUp2("Envio de imagem", "Selecione o modo de envio da imagem:", true, "Tirar foto", "foto do celular", "fotoNovoProd")
+            if (p0.child("nascimento").exists()){
+                values = p0.child("nascimento").value.toString()
+                val etNascimento: EditText = findViewById(R.id.perfil_etNascimento)
+                etNascimento.setText(values)
+            }
+
+            if (p0.child("doencas").exists()){
+                values = p0.child("doencas").value.toString()
+                val etDoencas: EditText = findViewById(R.id.perfil_etDoencas)
+                etDoencas.setText(values)
+            }
+
+            if (p0.child("remedios").exists()){
+                val radioN = findViewById<RadioButton>(R.id.perfil_remedioRadioN)
+                val radioS = findViewById<RadioButton>(R.id.perfil_remedioRadioS)
+                values = p0.child("remedios").value.toString()
+                if (values.equals("nao")){
+                    radioN.isChecked = true
+                    radioS.isChecked = false
+                } else {
+                    radioN.isChecked = false
+                    radioS.isChecked = true
+                }
+            }
+
+            EncerraDialog()
+
+        }
+
+
+        //EncerraDialog()
+
+    })
+
+}
+
+    fun dateWatcher( editText:EditText) {
+
+        var oldString : String = ""
+
+        editText.addTextChangedListener(object : TextWatcher {
+            var changed: Boolean = false
+
+            override fun afterTextChanged(p0: Editable?) {
+
+                changed = false
+
+
 
             }
 
-        }
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int)
+            {
+                //changed=false
+                editText.setSelection(p0.toString().length)
+            }
+
+            @SuppressLint("SetTextI18n")
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+
+                var str: String = p0.toString()
+
+                if (str != null) {
+
+                    if (oldString.equals(str)) {
+                        //significs que o user esta apagando
+                        //do Nothing
+
+                    } else if (str.length == 2) {  //  xx
+                        var element0: String = str.elementAt(0).toString()
+                        var element1: String = str.elementAt(1).toString()
+                        str = element0 + element1 + "/"
+                        editText.setText(str)
+                        oldString = element0 + element1
+                        editText.setSelection(str.length)
+
+                    } else if (str.length == 5) { //  xx/xx
+
+                        var element0: String = str.elementAt(0).toString() //x
+                        var element1: String = str.elementAt(1).toString() //-x
+                        var element2: String = str.elementAt(2).toString() //--/
+                        var element3: String = str.elementAt(3).toString() //--/x
+                        var element4: String = str.elementAt(4).toString() //--/-x
+
+                        str = element0 + element1 + element2 + element3 + element4 + "/"
+                        editText.setText(str)
+                        oldString = element0 + element1 + element2 + element3 + element4
+                        editText.setSelection(str.length)
+
+                    } else if (str.length > 10) { // este exemplo é para data no formato xx/xx/xx. Se você quer usar xx/xx/xxxx mudar para if (str.length >10). O resto do código permanece o mesmo.
+
+                        str = str.substring(0, str.length - 1)
+                        editText.setText(str)
+                        editText.setSelection(str.length)
+
+                    }
+
+
+                }
+
+            }
+        })
     }
-
-
-
-
 
     //upload de foto
     fun openPopUp2 (titulo: String, texto:String, exibeBtnOpcoes:Boolean, btnSim: String, btnNao: String, call: String) {
@@ -693,8 +912,6 @@ class perfilActivity : AppCompatActivity() {
 
 
 
-
-
     fun openPopUp (titulo: String, texto:String, exibeBtnOpcoes:Boolean, btnSim: String, btnNao: String) {
         //exibeBtnOpcoes - se for não, vai exibir apenas o botão com OK, sem opção. Senão, exibe dois botões e pega os textos deles de btnSim e btnNao
 
@@ -793,6 +1010,14 @@ class perfilActivity : AppCompatActivity() {
             0, // X offset
             0 // Y offset
         )
+
+    }
+
+    fun updateUserPoints(pontosNovos: Int){
+
+        pontos = pontos.toInt()+pontosNovos
+        SharePreferences.setPoints(this, pontos.toInt())
+        Toast.makeText(this, "Parabens! você ganhou "+pontosNovos.toString(), Toast.LENGTH_SHORT).show()
 
     }
 
