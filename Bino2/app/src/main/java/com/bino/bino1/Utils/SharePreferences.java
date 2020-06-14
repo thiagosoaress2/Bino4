@@ -21,7 +21,7 @@ public class SharePreferences {
 
     public static void setPoints(Context context, int points) {
         android.content.SharedPreferences preferences = context.getSharedPreferences("user_preferences", context.MODE_PRIVATE);
-        preferences.edit().putInt("points", points).commit();
+        preferences.edit().putInt("points", points).apply();
     }
 
     public static int getPoints(Context context) {
