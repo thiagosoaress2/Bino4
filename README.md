@@ -12,6 +12,9 @@ Redes sociais
 Contato
 
 
+
+
+
 Introdução
 
 De acordo com pesquisa da CNT 2019, 65% dos caminhoneiros se sentem inseguros nas estradas. Nosso aplicativo é voltado para estas pessoas.
@@ -36,12 +39,17 @@ Possibilidade de conversar com amigos e pessoas novas que estão próximas.
 Botão de emergência
 
 
+
+
+
 Como testar
 
-Para testar o app com todas as funcionalidades é preciso estar logado. Por isto disponibilizamos este e-mail.
+Para testar o app com todas as funcionalidades é preciso estar logado. Esta é uma caracterísitca da nossa rede para proteger a segurança dos caminhoneiros. Sendo assim, os usuários ingressam mediante convites. Por isto disponibilizamos este e-mail.
 usuário: binohackathon@gmail.com
 senha: bino2020
 Utilize este usuário e senha para entrar. 
+
+Sem login ainda é possível acessar o app, no entanto com algumas restrições.
 
 
 
