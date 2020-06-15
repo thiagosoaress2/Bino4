@@ -7,7 +7,7 @@ Tabela de itens:
 
 Introdução
 Recursos
-Como testar - para os jurados
+Como testar - para jurados
 Redes sociais
 Contato
 
