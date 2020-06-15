@@ -7,6 +7,7 @@ Tabela de itens:
 
 Introdução
 Recursos
+Como testar - para os jurados
 Redes sociais
 Contato
 
@@ -33,6 +34,16 @@ Qualificação de pontos de interesses na estrada pelos outros companheiros cami
 Assistente sonoro que avisa o caminhoneiros de cuidados com sua saúde, lembrando de beber água, alongar e etc.
 Possibilidade de conversar com amigos e pessoas novas que estão próximas.
 Botão de emergência
+
+
+Como testar
+
+Para testar o app com todas as funcionalidades é preciso estar logado. Por isto disponibilizamos este e-mail.
+usuário: binohackathon@gmail.com
+senha: bino2020
+Utilize este usuário e senha para entrar. 
+
+
 
 Redes sociais
 
